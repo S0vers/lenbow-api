@@ -1,7 +1,9 @@
+import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { AppModule } from 'src/app.module';
 import { ApiResponseInterceptor } from 'src/core/api-response.interceptor';
+import { EnvType } from 'src/core/env';
 import { HttpExceptionFilter } from 'src/core/http-exception.filter';
 import { appLogger, displayStartupInfo } from 'src/core/logger';
 import { logAllRoutes } from 'src/core/route-logger';
@@ -10,6 +12,30 @@ import { CsrfService } from 'src/csrf/csrf.service';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
+
+	// Get ConfigService instance
+	const configService = app.get(ConfigService<EnvType, true>);
+
+	// Get configuration values
+	const originUrls = configService.get<string>('ORIGIN_URL', { infer: true }).split(',');
+	const port = configService.get<number>('PORT', 3000);
+
+	app.enableCors({
+		origin: function (
+			origin: string | undefined,
+			callback: (err: Error | null, allow?: boolean) => void,
+		) {
+			if (!origin || originUrls.includes(origin)) {
+				callback(null, true);
+			} else {
+				callback(new Error('Not allowed by CORS'));
+			}
+		},
+		credentials: true,
+		methods: ['GET', 'POST', 'PUT', 'DELETE'],
+		allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token', 'ngrok-skip-browser-warning'],
+		maxAge: 3600,
+	});
 
 	// Enable cookie parsing for CSRF tokens
 	app.use(cookieParser());
@@ -28,8 +54,6 @@ async function bootstrap() {
 	const csrfService = app.get(CsrfService);
 	app.useGlobalGuards(new CsrfGuard(csrfService, reflector));
 
-	const port = process.env.PORT ?? 3000;
-
 	// Initialize and start the server
 	await app.init();
 	await app.listen(port);
@@ -38,7 +62,6 @@ async function bootstrap() {
 	displayStartupInfo(port);
 
 	// Log all routes (only in development mode)
-	// Must be called after app.listen() to ensure all routes are registered
 	logAllRoutes(app, {
 		saveToFile: true,
 		logToConsole: false,

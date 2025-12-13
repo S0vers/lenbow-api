@@ -94,6 +94,24 @@ export class AuthController {
 	}
 
 	@UseGuards(JwtAuthGuard)
+	@Post('logout')
+	async logout(@Request() request: ExpressRequest): Promise<ApiResponse<null>> {
+		const userId = request.user?.id;
+		const sessionToken = request.cookies['access-token'] as string | undefined;
+
+		if (!userId || !sessionToken) throw new BadRequestException('No active session found');
+
+		await this.authSession.revokeSession(userId, sessionToken);
+
+		request.res?.clearCookie('access-token', {
+			httpOnly: true,
+			secure: AppHelpers.sameSiteCookieConfig().secure,
+			sameSite: AppHelpers.sameSiteCookieConfig().sameSite,
+		});
+		return createApiResponse(HttpStatus.OK, 'Logout successful', null);
+	}
+
+	@UseGuards(JwtAuthGuard)
 	@Get('me')
 	getProfile(@Request() req: ExpressRequest): ApiResponse<UserWithoutPassword> {
 		const user = req.user as UserWithoutPassword;
