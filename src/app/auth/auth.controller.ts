@@ -171,10 +171,16 @@ export class AuthController {
 				if (decoded.redirect) {
 					const allowedOrigins = this.configService.get('ORIGIN_URL', { infer: true });
 					const allowedOriginsArray = allowedOrigins.split(',').map(origin => origin.trim());
-					const checkRedirect = allowedOriginsArray.find(origin => decoded.redirect === origin);
 
-					if (checkRedirect) {
-						redirectUrl = checkRedirect;
+					try {
+						const redirectUrlObj = new URL(decoded.redirect);
+						const redirectOrigin = redirectUrlObj.origin;
+
+						if (allowedOriginsArray.includes(redirectOrigin)) {
+							redirectUrl = decoded.redirect;
+						}
+					} catch {
+						// Invalid URL, ignore
 					}
 				}
 			} catch {
