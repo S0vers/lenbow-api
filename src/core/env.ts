@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { validateBoolean, validateEnum, validateString } from 'src/core/validators/commonRules';
+import { validateEnum, validateString } from 'src/core/validators/commonRules';
 
 // const smtpEnvSchema = z.object({
 // 	SMTP_HOST: validateString('SMTP_HOST'),
@@ -22,15 +22,6 @@ export const envSchema = z.object({
 	NODE_ENV: validateEnum('NODE_ENV', ['development', 'production']).default('development'),
 	COOKIE_DOMAIN: validateString('COOKIE_DOMAIN'),
 	ORIGIN_URL: validateString('ORIGIN_URL'),
-	OTP_RESET_EXPIRY_MINUTES: validateString('OTP_RESET_EXPIRY_MINUTES').refine(
-		value => !isNaN(Number(value)),
-		'OTP_RESET_EXPIRY_MINUTES must be a number',
-	),
-	SHOW_OTP: validateString('SHOW_OTP')
-		.refine(value =>
-			validateBoolean(value) ? true : 'SHOW_OTP must be a boolean value (true or false)',
-		)
-		.default('false'),
 	API_URL: validateString('API_URL'),
 	...googleEnvSchema.shape,
 	// ...smtpEnvSchema.shape,
