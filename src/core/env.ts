@@ -20,7 +20,6 @@ export const envSchema = z.object({
 	PORT: validateString('PORT').refine(value => !isNaN(Number(value)), 'PORT must be a number'),
 	SECRET: validateString('SECRET'),
 	NODE_ENV: validateEnum('NODE_ENV', ['development', 'production']).default('development'),
-	SESSION_COOKIE_NAME: validateString('SESSION_COOKIE_NAME'),
 	COOKIE_DOMAIN: validateString('COOKIE_DOMAIN'),
 	ORIGIN_URL: validateString('ORIGIN_URL'),
 	OTP_RESET_EXPIRY_MINUTES: validateString('OTP_RESET_EXPIRY_MINUTES').refine(
