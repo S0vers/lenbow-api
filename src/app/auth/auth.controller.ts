@@ -84,7 +84,9 @@ export class AuthController {
 	): Promise<ApiResponse<UserWithoutPasswordResponse>> {
 		const validate = registerSchema.safeParse(registerDto);
 		if (!validate.success) {
-			throw new BadRequestException(validate.error.issues.map(issue => issue.message).join(', '));
+			throw new BadRequestException(
+				`Validation failed: ${validate.error.issues.map(issue => issue.message).join(', ')}`,
+			);
 		}
 
 		const userData: CreateUser = {

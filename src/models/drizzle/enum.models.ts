@@ -4,6 +4,8 @@ import { pgEnum } from 'drizzle-orm/pg-core';
 export const transactionTypeEnum = pgEnum('transaction_type', ['lend', 'borrow']);
 export const transactionStatusEnum = pgEnum('transaction_status', [
 	'pending',
+	'accepted',
+	'rejected',
 	'partially_paid',
 	'completed',
 ]);

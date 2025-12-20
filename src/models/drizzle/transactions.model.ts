@@ -9,6 +9,7 @@ import {
 	uuid,
 	varchar,
 } from 'drizzle-orm/pg-core';
+import { timestamps } from 'src/database/helpers';
 import { users } from 'src/models/drizzle/auth.model';
 import { transactionStatusEnum, transactionTypeEnum } from 'src/models/drizzle/enum.models';
 
@@ -25,7 +26,7 @@ export const contacts = pgTable(
 		phone: varchar('phone', { length: 20 }),
 		email: varchar('email', { length: 255 }),
 		notes: text('notes'),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
+		...timestamps,
 	},
 	table => ({
 		publicIdIdx: uniqueIndex('contacts_public_id_idx').on(table.publicId),
@@ -47,14 +48,15 @@ export const transactions = pgTable(
 			.notNull()
 			.references(() => contacts.id, { onDelete: 'cascade' }),
 		type: transactionTypeEnum('type').notNull(),
-		amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
-		amountPaid: decimal('amount_paid', { precision: 10, scale: 2 }).default('0.00').notNull(),
+		amount: decimal('amount', { precision: 10, scale: 2, mode: 'number' }).notNull(),
+		amountPaid: decimal('amount_paid', { precision: 10, scale: 2, mode: 'number' })
+			.default(0)
+			.notNull(),
 		status: transactionStatusEnum('status').default('pending').notNull(),
 		description: text('description'),
 		dueDate: timestamp('due_date'),
 		transactionDate: timestamp('transaction_date').defaultNow().notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		...timestamps,
 	},
 	table => ({
 		publicIdIdx: uniqueIndex('transactions_public_id_idx').on(table.publicId),
@@ -77,10 +79,10 @@ export const payments = pgTable(
 		transactionId: serial('transaction_id')
 			.notNull()
 			.references(() => transactions.id, { onDelete: 'cascade' }),
-		amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+		amount: decimal('amount', { precision: 10, scale: 2, mode: 'number' }).notNull(),
 		paymentDate: timestamp('payment_date').defaultNow().notNull(),
 		notes: text('notes'),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
+		...timestamps,
 	},
 	table => ({
 		publicIdIdx: uniqueIndex('payments_public_id_idx').on(table.publicId),

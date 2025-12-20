@@ -10,6 +10,7 @@ import {
 	uuid,
 	varchar,
 } from 'drizzle-orm/pg-core';
+import { timestamps } from 'src/database/helpers';
 
 export const users = pgTable(
 	'users',
@@ -22,11 +23,7 @@ export const users = pgTable(
 		emailVerified: boolean('email_verified').default(false).notNull(),
 		image: text('image'),
 		is2faEnabled: boolean('is_2fa_enabled').default(false).notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at')
-			.defaultNow()
-			.$onUpdate(() => new Date())
-			.notNull(),
+		...timestamps,
 	},
 	table => ({
 		publicIdIdx: uniqueIndex('users_public_id_idx').on(table.publicId),
@@ -52,10 +49,7 @@ export const sessions = pgTable(
 			.references(() => users.id, { onDelete: 'cascade' }),
 		expiresAt: timestamp('expires_at').notNull(),
 		isRevoked: boolean('is_revoked').default(false).notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at')
-			.$onUpdate(() => new Date())
-			.notNull(),
+		...timestamps,
 	},
 	table => ({
 		publicIdIdx: uniqueIndex('sessions_public_id_idx').on(table.publicId),
@@ -85,10 +79,7 @@ export const accounts = pgTable(
 		refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
 		scope: text('scope'),
 		password: text('password'),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at')
-			.$onUpdate(() => new Date())
-			.notNull(),
+		...timestamps,
 	},
 	table => ({
 		publicIdIdx: uniqueIndex('accounts_public_id_idx').on(table.publicId),
@@ -112,11 +103,7 @@ export const verifications = pgTable(
 		identifier: text('identifier').notNull(),
 		value: text('value').notNull(),
 		expiresAt: timestamp('expires_at').notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at')
-			.defaultNow()
-			.$onUpdate(() => new Date())
-			.notNull(),
+		...timestamps,
 	},
 	table => ({
 		publicIdIdx: uniqueIndex('verifications_public_id_idx').on(table.publicId),
