@@ -3,6 +3,7 @@ import {
 	aliasedTable,
 	and,
 	count,
+	desc,
 	eq,
 	exists,
 	gte,
@@ -29,6 +30,7 @@ import {
 } from '../../database/types';
 import { AuthService } from '../auth/auth.service';
 import type {
+	ConnectedContactList,
 	TransactionEligibilityForDeletion,
 	TransactionListReturnType,
 } from './@types/transactions.types';
@@ -48,7 +50,9 @@ export class TransactionsService extends DrizzleService {
 		super(db);
 	}
 
-	async createTransaction(data: ValidateTransactionDto): Promise<TransactionSchemaType> {
+	async createTransaction(
+		data: Omit<ValidateTransactionDto, 'type'>,
+	): Promise<TransactionSchemaType> {
 		const newTransaction = await this.getDb()
 			.insert(schema.transactions)
 			.values(data)
@@ -58,161 +62,197 @@ export class TransactionsService extends DrizzleService {
 		return newTransaction;
 	}
 
-	// async getTransactionList(
-	// 	filter: TransactionQuerySchemaType,
-	// 	currentUserId: number,
-	// ): Promise<PaginatedResponse<TransactionListReturnType>> {
-	// 	// Create date objects from string inputs if they exist
-	// 	const fromDate = filter.from ? new Date(filter.from) : undefined;
-	// 	const toDate = filter.to ? new Date(filter.to) : undefined;
+	async getTransactionList(
+		filter: TransactionQuerySchemaType,
+		currentUserId: number,
+	): Promise<PaginatedResponse<TransactionListReturnType>> {
+		// Create date objects from string inputs if they exist
+		const fromDate = filter.from ? new Date(filter.from) : undefined;
+		const toDate = filter.to ? new Date(filter.to) : undefined;
 
-	// 	// If toDate exists, set it to the end of the day
-	// 	if (toDate) {
-	// 		toDate.setHours(23, 59, 59, 999);
-	// 	}
+		// If toDate exists, set it to the end of the day
+		if (toDate) {
+			toDate.setHours(23, 59, 59, 999);
+		}
 
-	// 	const q = filter.search ? `%${filter.search}%` : undefined;
+		const q = filter.search ? `%${filter.search}%` : undefined;
 
-	// 	// Casts for non-text columns used in ILIKE
-	// 	const userPublicIdText = sql<string>`${schema.users.publicId}::text`;
-	// 	const txPublicIdText = sql<string>`${schema.transactions.publicId}::text`;
-	// 	const amountText = sql<string>`${schema.transactions.amount}::text`;
-	// 	const amountPaidText = sql<string>`${schema.transactions.amountPaid}::text`;
+		// Casts for non-text columns used in ILIKE
+		const userPublicIdText = sql<string>`${schema.users.publicId}::text`;
+		const txPublicIdText = sql<string>`${schema.transactions.publicId}::text`;
+		const amountText = sql<string>`${schema.transactions.amount}::text`;
+		const amountPaidText = sql<string>`${schema.transactions.amountPaid}::text`;
 
-	// 	/**
-	// 	 * Extended search:
-	// 	 * - Match "other user" in the contact relationship (name/email/publicId), excluding myself
-	// 	 * - Match transaction fields (description/publicId/amount/amountPaid)
-	// 	 *
-	// 	 * NOTE: We use casts for UUID/decimal fields so Postgres can ILIKE them.
-	// 	 */
-	// 	const searchExists =
-	// 		filter.search && q
-	// 			? or(
-	// 					// Match "other user" in the contact relationship
-	// 					exists(
-	// 						this.getDb()
-	// 							.select({ id: schema.users.id })
-	// 							.from(schema.users)
-	// 							.innerJoin(
-	// 								schema.contacts,
-	// 								or(
-	// 									eq(schema.contacts.borrowerId, schema.users.id),
-	// 									eq(schema.contacts.requesterId, schema.users.id),
-	// 								),
-	// 							)
-	// 							.where(
-	// 								and(
-	// 									// correlate subquery to outer transactions row
-	// 									eq(schema.contacts.id, schema.transactions.requesterId),
-	// 									or(
-	// 										ilike(schema.users.name, q),
-	// 										ilike(schema.users.email, q),
-	// 										ilike(userPublicIdText, q), // ✅ uuid -> text
-	// 									),
-	// 									// exclude myself
-	// 									ne(schema.users.id, currentUserId),
-	// 								),
-	// 							),
-	// 					),
+		/**
+		 * Extended search:
+		 * - Match "other user" in the contact relationship (name/email/publicId), excluding myself
+		 * - Match transaction fields (description/publicId/amount/amountPaid)
+		 *
+		 * NOTE: We use casts for UUID/decimal fields so Postgres can ILIKE them.
+		 */
+		const searchExists =
+			filter.search && q
+				? or(
+						// Match "other user" in the contact relationship
+						exists(
+							this.getDb()
+								.select({ id: schema.users.id })
+								.from(schema.users)
+								.innerJoin(
+									schema.contacts,
+									or(
+										eq(schema.contacts.connectedUserId, schema.users.id),
+										eq(schema.contacts.requestedUserId, schema.users.id),
+									),
+								)
+								.where(
+									and(
+										// correlate subquery to outer transactions row
+										eq(schema.contacts.id, schema.transactions.lenderId),
+										or(
+											ilike(schema.users.name, q),
+											ilike(schema.users.email, q),
+											ilike(userPublicIdText, q), // ✅ uuid -> text
+										),
+										// exclude myself
+										ne(schema.users.id, currentUserId),
+									),
+								),
+						),
 
-	// 					// Match transaction fields
-	// 					ilike(schema.transactions.description, q),
-	// 					ilike(txPublicIdText, q), // ✅ uuid -> text
-	// 					ilike(amountText, q), // ✅ decimal -> text
-	// 					ilike(amountPaidText, q), // ✅ decimal -> text
-	// 				)
-	// 			: undefined;
+						// Match transaction fields
+						ilike(schema.transactions.description, q),
+						ilike(txPublicIdText, q), // ✅ uuid -> text
+						ilike(amountText, q), // ✅ decimal -> text
+						ilike(amountPaidText, q), // ✅ decimal -> text
+					)
+				: undefined;
 
-	// 	const conditions = [
-	// 		eq(schema.transactions.borrowerId, currentUserId),
-	// 		searchExists,
-	// 		filter.type ? inArray(schema.transactions.type, filter.type) : undefined,
-	// 		filter.status ? inArray(schema.transactions.status, filter.status) : undefined,
-	// 		fromDate ? gte(schema.transactions.createdAt, fromDate) : undefined,
-	// 		toDate ? lte(schema.transactions.createdAt, toDate) : undefined,
-	// 	].filter(Boolean);
+		const conditions = [
+			searchExists,
+			or(
+				eq(schema.transactions.borrowerId, currentUserId),
+				eq(schema.transactions.lenderId, currentUserId),
+			),
+			filter.status ? inArray(schema.transactions.status, filter.status) : undefined,
+			fromDate ? gte(schema.transactions.createdAt, fromDate) : undefined,
+			toDate ? lte(schema.transactions.createdAt, toDate) : undefined,
+		].filter(Boolean);
 
-	// 	const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-	// 	// Determine pagination parameters
-	// 	let pagination;
-	// 	let offset = 0;
-	// 	let totalItems = 0;
+		// Determine pagination parameters
+		let pagination;
+		let offset = 0;
+		let totalItems = 0;
 
-	// 	if (filter.page && filter.limit) {
-	// 		// Get total count for pagination
-	// 		totalItems = await this.getDb()
-	// 			.select({
-	// 				count: count(),
-	// 			})
-	// 			.from(schema.transactions)
-	// 			.where(whereClause)
-	// 			.then(result => result[0].count);
+		if (filter.page && filter.limit) {
+			// Get total count for pagination
+			totalItems = await this.getDb()
+				.select({
+					count: count(),
+				})
+				.from(schema.transactions)
+				.where(whereClause)
+				.then(result => result[0].count);
 
-	// 		const paginationManager = new PaginationManager(filter.page, filter.limit, totalItems);
-	// 		const paginationResult = paginationManager.createPagination();
-	// 		pagination = paginationResult.pagination;
-	// 		offset = paginationResult.offset;
-	// 	}
+			const paginationManager = new PaginationManager(filter.page, filter.limit, totalItems);
+			const paginationResult = paginationManager.createPagination();
+			pagination = paginationResult.pagination;
+			offset = paginationResult.offset;
+		}
 
-	// 	const transactionOrderBy = orderByColumn(schema.transactions, filter.sortBy, filter.sortOrder);
+		const transactionOrderBy = orderByColumn(schema.transactions, filter.sortBy, filter.sortOrder);
 
-	// 	// Determine which orderBy to use based on which table contains the field
-	// 	const orderBy = transactionOrderBy;
+		// Determine which orderBy to use based on which table contains the field
+		const orderBy = transactionOrderBy;
 
-	// 	// Build query with all possible combinations
-	// 	const baseSelect = this.getDb()
-	// 		.select({
-	// 			id: schema.transactions.publicId,
-	// 			publicId: schema.transactions.publicId,
-	// 			contact: {
-	// 				id: schema.users.publicId,
-	// 				name: schema.users.name,
-	// 				email: schema.users.email,
-	// 				image: schema.users.image,
-	// 			},
-	// 			type: schema.transactions.type,
-	// 			amount: schema.transactions.amount,
-	// 			amountPaid: schema.transactions.amountPaid,
-	// 			status: schema.transactions.status,
-	// 			description: schema.transactions.description,
-	// 			dueDate: schema.transactions.dueDate,
-	// 			createdAt: schema.transactions.createdAt,
-	// 			updatedAt: schema.transactions.updatedAt,
-	// 		})
-	// 		.from(schema.transactions)
-	// 		.leftJoin(schema.contacts, eq(schema.transactions.requesterId, schema.contacts.id))
-	// 		.leftJoin(schema.users, eq(schema.transactions.borrowerId, schema.users.id))
-	// 		.where(whereClause);
+		// Create aliases for joining users table twice
+		const borrowerUser = aliasedTable(schema.users, 'borrower');
+		const lenderUser = aliasedTable(schema.users, 'lender');
 
-	// 	let rawData;
-	// 	// Handle pagination and ordering
-	// 	if (filter.page && filter.limit) {
-	// 		// Paginated query
-	// 		if (offset && orderBy) {
-	// 			rawData = await baseSelect.limit(filter.limit).offset(offset).orderBy(orderBy);
-	// 		} else if (offset) {
-	// 			rawData = await baseSelect.limit(filter.limit).offset(offset);
-	// 		} else if (orderBy) {
-	// 			rawData = await baseSelect.limit(filter.limit).orderBy(orderBy);
-	// 		} else {
-	// 			rawData = await baseSelect.limit(filter.limit);
-	// 		}
-	// 	} else {
-	// 		// Non-paginated query
-	// 		if (orderBy) {
-	// 			rawData = await baseSelect.orderBy(orderBy);
-	// 		} else {
-	// 			rawData = await baseSelect;
-	// 		}
-	// 	}
+		// Build query with all possible combinations
+		const baseSelect = this.getDb()
+			.select({
+				id: schema.transactions.publicId,
+				publicId: schema.transactions.publicId,
+				borrowerId: schema.transactions.borrowerId,
+				lenderId: schema.transactions.lenderId,
+				borrower: {
+					id: borrowerUser.publicId,
+					name: borrowerUser.name,
+					email: borrowerUser.email,
+					image: borrowerUser.image,
+				},
+				lender: {
+					id: lenderUser.publicId,
+					name: lenderUser.name,
+					email: lenderUser.email,
+					image: lenderUser.image,
+				},
+				amount: schema.transactions.amount,
+				amountPaid: schema.transactions.amountPaid,
+				remainingAmount: schema.transactions.remainingAmount,
+				status: schema.transactions.status,
+				description: schema.transactions.description,
+				rejectionReason: schema.transactions.rejectionReason,
+				dueDate: schema.transactions.dueDate,
+				requestDate: schema.transactions.requestDate,
+				acceptedAt: schema.transactions.acceptedAt,
+				completedAt: schema.transactions.completedAt,
+				rejectedAt: schema.transactions.rejectedAt,
+				createdAt: schema.transactions.createdAt,
+				updatedAt: schema.transactions.updatedAt,
+			})
+			.from(schema.transactions)
+			.innerJoin(borrowerUser, eq(schema.transactions.borrowerId, borrowerUser.id))
+			.innerJoin(lenderUser, eq(schema.transactions.lenderId, lenderUser.id))
+			.where(whereClause);
 
-	// 	return {
-	// 		data: rawData,
-	// 		pagination,
-	// 	};
-	// }
+		let rawData;
+		// Handle pagination and ordering
+		if (filter.page && filter.limit) {
+			// Paginated query
+			if (offset && orderBy) {
+				rawData = await baseSelect.limit(filter.limit).offset(offset).orderBy(orderBy);
+			} else if (offset) {
+				rawData = await baseSelect.limit(filter.limit).offset(offset);
+			} else if (orderBy) {
+				rawData = await baseSelect.limit(filter.limit).orderBy(orderBy);
+			} else {
+				rawData = await baseSelect.limit(filter.limit);
+			}
+		} else {
+			// Non-paginated query
+			if (orderBy) {
+				rawData = await baseSelect.orderBy(orderBy);
+			} else {
+				rawData = await baseSelect;
+			}
+		}
+
+		const convertedData: TransactionListReturnType[] = rawData.map(tx => {
+			// Determine type based on currentUserId
+			let type: 'lend' | 'borrow' = 'borrow';
+
+			if (tx.lenderId === currentUserId) {
+				type = 'lend';
+			}
+
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { borrowerId, lenderId, ...rest } = tx;
+
+			return {
+				...rest,
+				type,
+			};
+		});
+
+		return {
+			data: convertedData,
+			pagination,
+		};
+	}
 
 	async getRequestedTransactionList(
 		filter: TransactionQuerySchemaType,
@@ -580,5 +620,49 @@ export class TransactionsService extends DrizzleService {
 		if (!getOrCreateContact) throw new NotFoundException('Contact not found');
 
 		return getOrCreateContact;
+	}
+
+	async getConnectedContacts(
+		search: string,
+		currentUserId: number,
+	): Promise<ConnectedContactList[]> {
+		const results = await this.getDb()
+			.select({
+				userId: schema.users.publicId,
+				name: schema.users.name,
+				email: schema.users.email,
+				image: schema.users.image,
+				phone: schema.users.phone,
+				connectedAt: schema.contacts.createdAt,
+			})
+			.from(schema.contacts)
+			.innerJoin(
+				schema.users,
+				sql`${schema.users.id} = CASE
+        WHEN ${schema.contacts.requestedUserId} = ${currentUserId}
+        THEN ${schema.contacts.connectedUserId}
+        ELSE ${schema.contacts.requestedUserId}
+      END`,
+			)
+			.where(
+				and(
+					or(
+						eq(schema.contacts.requestedUserId, currentUserId),
+						eq(schema.contacts.connectedUserId, currentUserId),
+					),
+					or(ilike(schema.users.name, `%${search}%`), ilike(schema.users.email, `%${search}%`)),
+				),
+			)
+			.orderBy(desc(schema.contacts.createdAt));
+
+		// Remove duplicates by userId (keep first occurrence = most recent)
+		const seen = new Set<string>();
+		return results.filter(contact => {
+			if (seen.has(contact.userId)) {
+				return false;
+			}
+			seen.add(contact.userId);
+			return true;
+		});
 	}
 }

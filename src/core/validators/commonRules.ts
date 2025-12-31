@@ -147,8 +147,8 @@ const baseUrl = (
 const baseUUID = (name: string) =>
 	z.uuid({
 		version: 'v4',
-		error: zodMessages.error.invalid.invalidString
-			? zodMessages.error.invalid.invalidString(name)
+		error: zodMessages.error.invalid.invalidUUID
+			? zodMessages.error.invalid.invalidUUID(name)
 			: `${name} must be a valid UUID`,
 	});
 

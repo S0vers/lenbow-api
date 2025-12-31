@@ -15,8 +15,13 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { createApiResponse, type ApiResponse } from '../../core/api-response.interceptor';
+import { validateUUID } from '../../core/validators/commonRules';
 import { JwtAuthGuard } from '../auth/auth.guard';
-import type { TransactionListReturnType, TransactionReturnType } from './@types/transactions.types';
+import type {
+	ConnectedContactList,
+	TransactionListReturnType,
+	TransactionReturnType,
+} from './@types/transactions.types';
 import {
 	transactionQuerySchema,
 	validateTransactionSchema,
@@ -31,30 +36,30 @@ import { TransactionsService } from './transactions.service';
 export class TransactionsController {
 	constructor(private readonly transactionsService: TransactionsService) {}
 
-	// @UseGuards(JwtAuthGuard)
-	// @Get('')
-	// async getTransactionList(
-	// 	@Req() req: Request,
-	// 	@Query() query: TransactionQuerySchemaType,
-	// ): Promise<ApiResponse<TransactionListReturnType[]>> {
-	// 	const userId = req.user?.id;
+	@UseGuards(JwtAuthGuard)
+	@Get('')
+	async getTransactionList(
+		@Req() req: Request,
+		@Query() query: TransactionQuerySchemaType,
+	): Promise<ApiResponse<TransactionListReturnType[]>> {
+		const userId = req.user?.id;
 
-	// 	const validate = transactionQuerySchema.safeParse(query);
-	// 	if (!validate.success) {
-	// 		throw new BadRequestException(
-	// 			`Validation failed: ${validate.error.issues.map(issue => issue.message).join(', ')}`,
-	// 		);
-	// 	}
+		const validate = transactionQuerySchema.safeParse(query);
+		if (!validate.success) {
+			throw new BadRequestException(
+				`Validation failed: ${validate.error.issues.map(issue => issue.message).join(', ')}`,
+			);
+		}
 
-	// 	const transactions = await this.transactionsService.getTransactionList(validate.data, userId!);
+		const transactions = await this.transactionsService.getTransactionList(validate.data, userId!);
 
-	// 	return createApiResponse(
-	// 		HttpStatus.OK,
-	// 		'Transaction list fetched successfully',
-	// 		transactions.data,
-	// 		transactions.pagination,
-	// 	);
-	// }
+		return createApiResponse(
+			HttpStatus.OK,
+			'Transaction list fetched successfully',
+			transactions.data,
+			transactions.pagination,
+		);
+	}
 
 	@UseGuards(JwtAuthGuard)
 	@Post('')
@@ -65,15 +70,32 @@ export class TransactionsController {
 		const borrowerId = Number(req.user?.id);
 		const lenderId = String(validateTransactionDto.lenderId);
 
+		const checkUUID = validateUUID('Lender ID').safeParse(lenderId);
+		if (!checkUUID.success) {
+			throw new BadRequestException(`Validation failed: ${checkUUID.error.issues[0].message}`);
+		}
+
 		const getContact = await this.transactionsService.getOrCreateContactByPublicId(
 			lenderId,
 			borrowerId,
 		);
 
+		let typeBorrowerId: number;
+		let typeLenderId: number;
+
+		if (validateTransactionDto.type === 'lend') {
+			typeBorrowerId = getContact.connectedUserId;
+			typeLenderId = getContact.requestedUserId;
+		} else {
+			// 'borrow'
+			typeBorrowerId = getContact.requestedUserId;
+			typeLenderId = getContact.connectedUserId;
+		}
+
 		const extendedDto: ValidateTransactionDto = {
 			...validateTransactionDto,
-			borrowerId: getContact.requestedUserId,
-			lenderId: getContact.connectedUserId,
+			borrowerId: typeBorrowerId,
+			lenderId: typeLenderId,
 			status: 'pending',
 		};
 
@@ -85,8 +107,11 @@ export class TransactionsController {
 			);
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { type, ...rest } = validate.data;
+
 		// Create the transaction
-		const transaction = await this.transactionsService.createTransaction(validate.data);
+		const transaction = await this.transactionsService.createTransaction(rest);
 
 		const responseTransaction: TransactionReturnType = {
 			...transaction,
@@ -152,6 +177,23 @@ export class TransactionsController {
 			transactions.data,
 			transactions.pagination,
 		);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Get('/connected-contacts')
+	async getConnectedContactList(
+		@Req() req: Request,
+		@Query('search') search: string,
+	): Promise<ApiResponse<ConnectedContactList[]>> {
+		const currentUserId = req.user?.id;
+
+		if (!search || !search.trim()) {
+			throw new BadRequestException('Search query cannot be empty');
+		}
+
+		const contacts = await this.transactionsService.getConnectedContacts(search, currentUserId!);
+
+		return createApiResponse(HttpStatus.OK, 'Connected contacts fetched successfully', contacts);
 	}
 
 	@UseGuards(JwtAuthGuard)

@@ -58,6 +58,7 @@ export const zodMessages = {
 			invalidLength: (field: string, length: number) =>
 				`${field} must be exactly ${length} characters long.`,
 			invalidObjectId: (field: string) => `${field} must be a valid ObjectId.`,
+			invalidUUID: (field: string) => `${field} must be a valid UUID.`,
 		},
 	},
 };

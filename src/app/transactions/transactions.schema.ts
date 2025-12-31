@@ -50,6 +50,7 @@ export const validateTransactionSchema = z.object({
 	amount: validatePositiveNumber('Amount'),
 	amountPaid: validatePositiveNumber('Amount Paid').optional(),
 	remainingAmount: validatePositiveNumber('Remaining Amount').optional(),
+	type: validateEnum('Transaction Type', transactionTypeEnum.enumValues),
 	status: validateEnum('Transaction Status', transactionStatusEnum.enumValues),
 	description: validateString('Description').optional(),
 	rejectionReason: validateString('Rejection Reason').optional(),
@@ -63,6 +64,7 @@ export const validateTransactionSchema = z.object({
 export const validateUpdateTransactionSchema = validateTransactionSchema.omit({
 	borrowerId: true,
 	lenderId: true,
+	type: true,
 });
 
 export const validateDeleteTransactionSchema = z.object({

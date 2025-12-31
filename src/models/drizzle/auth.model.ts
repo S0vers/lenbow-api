@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import {
 	boolean,
 	index,
@@ -31,6 +32,9 @@ export const users = pgTable(
 		uniqueIndex('users_email_idx').on(table.email),
 		index('users_email_verified_idx').on(table.emailVerified),
 		index('users_is_2fa_enabled_idx').on(table.is2faEnabled),
+		// For case-insensitive search performance
+		index('users_name_lower_idx').on(sql`LOWER(${table.name})`),
+		index('users_email_lower_idx').on(sql`LOWER(${table.email})`),
 	],
 );
 
