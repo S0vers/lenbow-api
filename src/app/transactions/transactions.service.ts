@@ -1,9 +1,8 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
 	aliasedTable,
 	and,
 	count,
-	desc,
 	eq,
 	exists,
 	gte,
@@ -25,12 +24,10 @@ import DrizzleService from '../../database/service';
 import {
 	TransactionSchemaType,
 	TransactionStatusEnum,
-	type ContactSchemaType,
 	type TransactionTypeEnum,
 } from '../../database/types';
 import { AuthService } from '../auth/auth.service';
 import type {
-	ConnectedContactList,
 	TransactionEligibilityForDeletion,
 	TransactionListReturnType,
 } from './@types/transactions.types';
@@ -604,77 +601,5 @@ export class TransactionsService extends DrizzleService {
 	async deleteTransaction(ids: number[]): Promise<string> {
 		await this.getDb().delete(schema.transactions).where(inArray(schema.transactions.id, ids));
 		return 'Transaction deleted successfully';
-	}
-
-	// Transaction contacts
-	async getOrCreateContactByPublicId(
-		lenderId: string,
-		borrowerId: number,
-	): Promise<ContactSchemaType> {
-		// Find user by public ID
-		const lender = await this.authService.findUserByPublicId(lenderId);
-
-		if (lender.id === borrowerId) {
-			throw new BadRequestException('You cannot request a loan or borrow from yourself');
-		}
-
-		const getOrCreateContact = await this.getDb()
-			.insert(schema.contacts)
-			.values({
-				connectedUserId: lender.id,
-				requestedUserId: borrowerId,
-			})
-			.onConflictDoUpdate({
-				target: [schema.contacts.connectedUserId, schema.contacts.requestedUserId],
-				set: {
-					connectedUserId: schema.contacts.connectedUserId, // no-op update
-				},
-			})
-			.returning()
-			.then(res => res[0]);
-
-		if (!getOrCreateContact) throw new NotFoundException('Contact not found');
-
-		return getOrCreateContact;
-	}
-
-	async getConnectedContacts(currentUserId: number): Promise<ConnectedContactList[]> {
-		const results = await this.getDb()
-			.select({
-				userId: schema.users.publicId,
-				name: schema.users.name,
-				email: schema.users.email,
-				image: schema.users.image,
-				phone: schema.users.phone,
-				connectedAt: schema.contacts.createdAt,
-			})
-			.from(schema.contacts)
-			.innerJoin(
-				schema.users,
-				sql`${schema.users.id} = CASE
-        WHEN ${schema.contacts.requestedUserId} = ${currentUserId}
-        THEN ${schema.contacts.connectedUserId}
-        ELSE ${schema.contacts.requestedUserId}
-      END`,
-			)
-			.where(
-				and(
-					or(
-						eq(schema.contacts.requestedUserId, currentUserId),
-						eq(schema.contacts.connectedUserId, currentUserId),
-					),
-				),
-			)
-			.orderBy(desc(schema.contacts.createdAt));
-
-		// Remove duplicates by userId (keep first occurrence = most recent)
-		const seen = new Set<string>();
-		return results.filter(contact => {
-			if (seen.has(contact.userId)) {
-				return false;
-			}
-			seen.add(contact.userId);
-			return true;
-		});
 	}
 }

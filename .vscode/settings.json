@@ -14,7 +14,7 @@
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
 	"javascript.validate.enable": false, //disable all built-in syntax checking
-	"typescript.preferences.preferTypeOnlyAutoImports": true,
+	// "typescript.preferences.preferTypeOnlyAutoImports": true,
 	"editor.codeActionsOnSave": {
 		"source.fixAll.eslint": "explicit",
 		"source.fixAll.tslint": "explicit",

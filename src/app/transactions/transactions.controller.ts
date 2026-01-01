@@ -17,12 +17,8 @@ import type { Request } from 'express';
 import { createApiResponse, type ApiResponse } from '../../core/api-response.interceptor';
 import { validateUUID } from '../../core/validators/commonRules';
 import { JwtAuthGuard } from '../auth/auth.guard';
-import { AuthService } from '../auth/auth.service';
-import type {
-	ConnectedContactList,
-	TransactionListReturnType,
-	TransactionReturnType,
-} from './@types/transactions.types';
+import { ContactsService } from '../contacts/contacts.service';
+import type { TransactionListReturnType, TransactionReturnType } from './@types/transactions.types';
 import {
 	transactionQuerySchema,
 	validateTransactionSchema,
@@ -38,7 +34,7 @@ import { TransactionsService } from './transactions.service';
 export class TransactionsController {
 	constructor(
 		private readonly transactionsService: TransactionsService,
-		private readonly authService: AuthService,
+		private readonly contactsService: ContactsService,
 	) {}
 
 	@UseGuards(JwtAuthGuard)
@@ -80,27 +76,15 @@ export class TransactionsController {
 			throw new BadRequestException(`Validation failed: ${checkUUID.error.issues[0].message}`);
 		}
 
-		const getContact = await this.transactionsService.getOrCreateContactByPublicId(
+		const getContact = await this.contactsService.getOrCreateContactByPublicId(
 			lenderId,
 			borrowerId,
 		);
 
-		let typeBorrowerId: number;
-		let typeLenderId: number;
-
-		if (validateTransactionDto.type === 'lend') {
-			typeBorrowerId = getContact.connectedUserId;
-			typeLenderId = getContact.requestedUserId;
-		} else {
-			// 'borrow'
-			typeBorrowerId = getContact.requestedUserId;
-			typeLenderId = getContact.connectedUserId;
-		}
-
 		const extendedDto: ValidateTransactionDto = {
 			...validateTransactionDto,
-			borrowerId: typeBorrowerId,
-			lenderId: typeLenderId,
+			borrowerId: getContact.requestedUserId,
+			lenderId: getContact.connectedUserId,
 			status: 'pending',
 		};
 
@@ -112,11 +96,8 @@ export class TransactionsController {
 			);
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const { type, ...rest } = validate.data;
-
 		// Create the transaction
-		const transaction = await this.transactionsService.createTransaction(rest);
+		const transaction = await this.transactionsService.createTransaction(validate.data);
 
 		const responseTransaction: TransactionReturnType = {
 			...transaction,
@@ -182,35 +163,6 @@ export class TransactionsController {
 			transactions.data,
 			transactions.pagination,
 		);
-	}
-
-	@UseGuards(JwtAuthGuard)
-	@Get('/connected-contacts')
-	async getConnectedContactList(@Req() req: Request): Promise<ApiResponse<ConnectedContactList[]>> {
-		const currentUserId = req.user?.id;
-
-		const contacts = await this.transactionsService.getConnectedContacts(currentUserId!);
-
-		return createApiResponse(HttpStatus.OK, 'Connected contacts fetched successfully', contacts);
-	}
-
-	@UseGuards(JwtAuthGuard)
-	@Get('/contact/:publicId')
-	async getContactByPublicId(
-		@Param('publicId', ParseUUIDPipe) publicId: string,
-	): Promise<ApiResponse<ConnectedContactList>> {
-		const user = await this.authService.findUserByPublicId(publicId);
-
-		const contact: ConnectedContactList = {
-			userId: user.publicId,
-			name: user.name,
-			email: user.email,
-			image: user.image,
-			phone: user.phone,
-			connectedAt: user.createdAt,
-		};
-
-		return createApiResponse(HttpStatus.OK, 'Contact fetched successfully', contact);
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -305,7 +257,7 @@ export class TransactionsController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@Put(':publicId')
+	@Get(':publicId')
 	async getTransaction(
 		@Param('publicId', ParseUUIDPipe) publicId: string,
 		@Req() req: Request,
@@ -313,6 +265,8 @@ export class TransactionsController {
 		const user = req.user;
 		// Fetch the transaction by its public ID
 		const transaction = await this.transactionsService.getTransactionByPublicId(publicId);
+
+		console.log(transaction.borrowerId, transaction.lenderId, user?.id);
 
 		if (transaction.borrowerId !== user?.id || transaction.lenderId !== user?.id)
 			throw new BadRequestException(`You are not authorized to view this transaction.`);
