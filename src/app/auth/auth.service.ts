@@ -1,10 +1,13 @@
 import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { and, eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { CloudinaryImageService } from '../../core/cloudinary/upload';
 import { sessionTimeout } from '../../core/constants';
 import { CryptoService } from '../../core/crypto/crypto.service';
+import { EnvType } from '../../core/env';
 import { DATABASE_CONNECTION } from '../../database/connection';
 import schema from '../../database/schema';
 import DrizzleService from '../../database/service';
@@ -26,14 +29,23 @@ interface UserInformation {
 
 @Injectable()
 export class AuthService extends DrizzleService {
+	private readonly cloudinaryImageService: CloudinaryImageService;
+
 	constructor(
 		@Inject(DATABASE_CONNECTION)
 		db: NodePgDatabase<typeof schema>,
 		private readonly jwtService: JwtService,
 		private readonly authSession: AuthSession,
 		private readonly cryptoService: CryptoService,
+		private configService: ConfigService<EnvType, true>,
 	) {
 		super(db);
+		this.cloudinaryImageService = new CloudinaryImageService({
+			cloudName: this.configService.get('CLOUDINARY_CLOUD_NAME'),
+			apiKey: this.configService.get('CLOUDINARY_API_KEY'),
+			apiSecret: this.configService.get('CLOUDINARY_API_SECRET'),
+			folder: 'user_profiles',
+		});
 	}
 
 	async generateAccessToken(userInfo: UserInformation): Promise<string> {
@@ -128,10 +140,31 @@ export class AuthService extends DrizzleService {
 		let hashedPassword: string | undefined = undefined;
 		if (data.password) hashedPassword = await bcrypt.hash(data.password, 10);
 
+		let imageUrl: string | null = null;
+		let imageInformation: Record<string, any> | null | undefined = null;
+
+		if (data.image) {
+			const uploadResult = await this.cloudinaryImageService.uploadFromGoogleUrl(data.image, {
+				folder: 'user_profiles',
+				transformation: {
+					quality: 'auto',
+					format: 'webp',
+					width: 500,
+					height: 500,
+					crop: 'fill',
+				},
+			});
+
+			imageUrl = String(uploadResult.data?.secure_url);
+			imageInformation = uploadResult.data;
+		}
+
 		const newUser = await this.getDb()
 			.insert(schema.users)
 			.values({
 				...data,
+				image: imageUrl,
+				imageInformation: imageInformation,
 				password: hashedPassword,
 			})
 			.returning()
@@ -200,6 +233,7 @@ export class AuthService extends DrizzleService {
 			email: profile.email,
 			password: null,
 			image: profile.picture,
+			imageInformation: null,
 			emailVerified: true, // Google verified email
 			phone: null,
 		});

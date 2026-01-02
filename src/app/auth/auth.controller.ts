@@ -89,6 +89,7 @@ export class AuthController {
 			email: validate.data.email,
 			password: validate.data.password,
 			image: validate.data.image || null,
+			imageInformation: null,
 			emailVerified: false,
 			phone: validate.data.phone || null,
 		};
@@ -131,6 +132,7 @@ export class AuthController {
 		const user = req.user as UserWithoutPassword;
 		const responseUser: UserWithoutPasswordResponse = {
 			...user,
+			imageInformation: null,
 			id: user.publicId,
 		};
 		return createApiResponse(HttpStatus.OK, 'User profile fetched successfully', responseUser);

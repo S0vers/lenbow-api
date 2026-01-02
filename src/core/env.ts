@@ -15,6 +15,12 @@ const googleEnvSchema = z.object({
 	GOOGLE_CALLBACK_URL: validateString('GOOGLE_CALLBACK_URL'),
 });
 
+const cloudinaryEnvSchema = z.object({
+	CLOUDINARY_CLOUD_NAME: validateString('CLOUDINARY_CLOUD_NAME'),
+	CLOUDINARY_API_KEY: validateString('CLOUDINARY_API_KEY'),
+	CLOUDINARY_API_SECRET: validateString('CLOUDINARY_API_SECRET'),
+});
+
 export const envSchema = z.object({
 	DATABASE_URL: validateString('DATABASE_URL'),
 	PORT: validateString('PORT').refine(value => !isNaN(Number(value)), 'PORT must be a number'),
@@ -24,6 +30,7 @@ export const envSchema = z.object({
 	ORIGIN_URL: validateString('ORIGIN_URL'),
 	API_URL: validateString('API_URL'),
 	...googleEnvSchema.shape,
+	...cloudinaryEnvSchema.shape,
 	// ...smtpEnvSchema.shape,
 });
 
