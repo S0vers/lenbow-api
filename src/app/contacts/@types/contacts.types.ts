@@ -6,3 +6,7 @@ export interface ConnectedContactList {
 	phone: string | null;
 	connectedAt: Date;
 }
+
+export type ContactListReturnType = ConnectedContactList & {
+	id: string;
+};

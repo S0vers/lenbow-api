@@ -10,3 +10,17 @@ export const transactionStatusEnum = pgEnum('transaction_status', [
 	'requested_repay',
 	'completed',
 ]);
+
+// History actions for transactions only
+export const transactionHistoryActionEnum = pgEnum('transaction_history_action', [
+	'create',
+	'update',
+	'status_change',
+	'delete',
+	'partial_repay',
+	'complete_repay',
+	'request_repay',
+	'accept_repay',
+	'reject_repay',
+	'add_payment',
+]);

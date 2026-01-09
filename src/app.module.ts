@@ -9,6 +9,7 @@ import { validateEnv } from './core/env';
 import { CsrfModule } from './csrf/csrf.module';
 import { DatabaseModule } from './database/database.module';
 import { ContactsModule } from './app/contacts/contacts.module';
+import { HistoryModule } from './app/history/history.module';
 
 @Module({
 	imports: [
@@ -23,6 +24,7 @@ import { ContactsModule } from './app/contacts/contacts.module';
 		AuthModule,
 		TransactionsModule,
 		ContactsModule,
+		HistoryModule,
 	],
 	controllers: [AppController],
 })

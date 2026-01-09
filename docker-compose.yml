@@ -1,8 +1,10 @@
+name: lenbow
+
 services:
   postgres:
     image: postgres:latest
-    container_name: postgres-loan-app
-    restart: always
+    container_name: lenbow-postgres
+    restart: on-failure
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

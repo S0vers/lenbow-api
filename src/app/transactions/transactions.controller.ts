@@ -16,8 +16,10 @@ import {
 import type { Request } from 'express';
 import { createApiResponse, type ApiResponse } from '../../core/api-response.interceptor';
 import { validateUUID } from '../../core/validators/commonRules';
+import { TransactionHistoryActionEnum } from '../../database/types';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { ContactsService } from '../contacts/contacts.service';
+import { HistoryService } from '../history/history.service';
 import type { TransactionListReturnType, TransactionReturnType } from './@types/transactions.types';
 import {
 	transactionQuerySchema,
@@ -37,6 +39,7 @@ export class TransactionsController {
 	constructor(
 		private readonly transactionsService: TransactionsService,
 		private readonly contactsService: ContactsService,
+		private readonly historyService: HistoryService,
 	) {}
 
 	@UseGuards(JwtAuthGuard)
@@ -106,6 +109,14 @@ export class TransactionsController {
 			id: transaction.publicId,
 		};
 
+		await this.historyService.createTransactionHistoryRecord({
+			transactionId: transaction.id,
+			actorUserId: borrowerId,
+			action: 'create',
+			details: responseTransaction,
+			occurredAt: new Date(),
+		});
+
 		return createApiResponse(
 			HttpStatus.CREATED,
 			'Transaction created successfully',
@@ -133,6 +144,21 @@ export class TransactionsController {
 		const ineligibleTransactionsNumber = ineligibleTransactions.length;
 
 		await this.transactionsService.deleteTransaction(eligibleTransactions.map(t => t));
+
+		for (const transaction of transactions) {
+			if (eligibleTransactions.includes(transaction.id)) {
+				await this.historyService.createTransactionHistoryRecord({
+					transactionId: transaction.id,
+					actorUserId: user!.id,
+					action: 'delete',
+					details: {
+						...transaction,
+						id: transaction.publicId,
+					},
+					occurredAt: new Date(),
+				});
+			}
+		}
 
 		return createApiResponse(
 			HttpStatus.OK,
@@ -207,6 +233,14 @@ export class TransactionsController {
 			...updatedTransaction,
 			id: updatedTransaction.publicId,
 		};
+
+		await this.historyService.createTransactionHistoryRecord({
+			transactionId: transaction.id,
+			actorUserId: user.id,
+			action: 'update',
+			details: responseTransaction,
+			occurredAt: new Date(),
+		});
 
 		return createApiResponse(
 			HttpStatus.OK,
@@ -301,6 +335,34 @@ export class TransactionsController {
 			id: updatedTransaction.publicId,
 		};
 
+		let historyAction: TransactionHistoryActionEnum = 'status_change';
+
+		switch (validate.data.status) {
+			case 'requested_repay':
+				historyAction = 'request_repay';
+				break;
+			case 'partially_paid':
+				historyAction = 'partial_repay';
+				break;
+			case 'completed':
+				historyAction = 'complete_repay';
+				break;
+			case 'accepted':
+				historyAction = 'accept_repay';
+				break;
+			case 'rejected':
+				historyAction = 'reject_repay';
+				break;
+		}
+
+		await this.historyService.createTransactionHistoryRecord({
+			transactionId: transaction.id,
+			actorUserId: user!.id,
+			action: historyAction,
+			details: responseTransaction,
+			occurredAt: new Date(),
+		});
+
 		return createApiResponse(
 			HttpStatus.OK,
 			'Transaction status updated successfully',
@@ -354,6 +416,14 @@ export class TransactionsController {
 			id: updatedTransaction.publicId,
 		};
 
+		await this.historyService.createTransactionHistoryRecord({
+			transactionId: transaction.id,
+			actorUserId: user.id,
+			action: 'accept_repay',
+			details: responseTransaction,
+			occurredAt: new Date(),
+		});
+
 		return createApiResponse(
 			HttpStatus.OK,
 			'Transaction accepted successfully',
@@ -394,6 +464,14 @@ export class TransactionsController {
 			...updatedTransaction,
 			id: updatedTransaction.publicId,
 		};
+
+		await this.historyService.createTransactionHistoryRecord({
+			transactionId: transaction.id,
+			actorUserId: user.id,
+			action: 'reject_repay',
+			details: responseTransaction,
+			occurredAt: new Date(),
+		});
 
 		return createApiResponse(
 			HttpStatus.OK,

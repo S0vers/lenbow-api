@@ -1,7 +1,8 @@
 // In your schema file
 import { relations } from 'drizzle-orm';
 import { users } from './auth.model';
-import { contacts } from './transactions.model';
+import { transactionHistories } from './history.model';
+import { contacts, transactions } from './transactions.model';
 
 export const usersRelations = relations(users, ({ many }) => ({
 	requestedContacts: many(contacts, { relationName: 'requested' }),
@@ -18,5 +19,24 @@ export const contactsRelations = relations(contacts, ({ one }) => ({
 		fields: [contacts.connectedUserId],
 		references: [users.id],
 		relationName: 'connected',
+	}),
+}));
+
+export const usersHistoryRelations = relations(users, ({ many }) => ({
+	histories: many(transactionHistories),
+}));
+
+export const transactionsRelations = relations(transactions, ({ many }) => ({
+	histories: many(transactionHistories),
+}));
+
+export const transactionHistoriesRelations = relations(transactionHistories, ({ one }) => ({
+	transaction: one(transactions, {
+		fields: [transactionHistories.transactionId],
+		references: [transactions.id],
+	}),
+	actor: one(users, {
+		fields: [transactionHistories.actorUserId],
+		references: [users.id],
 	}),
 }));

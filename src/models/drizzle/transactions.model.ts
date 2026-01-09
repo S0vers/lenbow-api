@@ -18,6 +18,7 @@ export const contacts = pgTable(
 	'contacts',
 	{
 		id: serial('id').primaryKey(),
+		publicId: uuid('public_id').defaultRandom().notNull().unique(),
 		requestedUserId: integer('requested_user_id')
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),

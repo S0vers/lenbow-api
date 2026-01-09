@@ -26,7 +26,6 @@ import {
 	TransactionStatusEnum,
 	type TransactionTypeEnum,
 } from '../../database/types';
-import { AuthService } from '../auth/auth.service';
 import type {
 	TransactionEligibilityForDeletion,
 	TransactionListReturnType,
@@ -42,7 +41,6 @@ export class TransactionsService extends DrizzleService {
 	constructor(
 		@Inject(DATABASE_CONNECTION)
 		db: NodePgDatabase<typeof schema>,
-		private readonly authService: AuthService,
 	) {
 		super(db);
 	}
@@ -683,49 +681,5 @@ export class TransactionsService extends DrizzleService {
 	async deleteTransaction(ids: number[]): Promise<string> {
 		await this.getDb().delete(schema.transactions).where(inArray(schema.transactions.id, ids));
 		return 'Transaction deleted successfully';
-	}
-
-	async completeRepayTransaction(ids: number[]): Promise<TransactionSchemaType[]> {
-		const updatedTransactions = await this.getDb()
-			.update(schema.transactions)
-			.set({
-				status: 'completed',
-				amountPaid: schema.transactions.amount,
-				remainingAmount: 0,
-				completedAt: new Date(),
-			})
-			.where(inArray(schema.transactions.id, ids))
-			.returning();
-
-		return updatedTransactions;
-	}
-
-	async partialRepayTransaction(
-		data: TransactionSchemaType,
-		amount: number,
-	): Promise<TransactionSchemaType> {
-		// Calculate new amounts
-		const newAmountPaid = data.amountPaid + amount;
-		const newRemainingAmount = data.amount - newAmountPaid;
-		// Determine new status
-		let newStatus: TransactionStatusEnum = 'partially_paid';
-		if (newRemainingAmount <= 0) {
-			newStatus = 'completed';
-		}
-
-		// Update the transaction
-		const updatedTransaction = await this.getDb()
-			.update(schema.transactions)
-			.set({
-				amountPaid: newAmountPaid,
-				remainingAmount: newRemainingAmount,
-				status: newStatus,
-				completedAt: newStatus === 'completed' ? new Date() : null,
-			})
-			.where(eq(schema.transactions.id, data.id))
-			.returning()
-			.then(res => res[0]);
-
-		return updatedTransaction;
 	}
 }
