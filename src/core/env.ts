@@ -2,13 +2,6 @@ import { z } from 'zod';
 
 import { validateEnum, validateString } from './validators/commonRules';
 
-// const smtpEnvSchema = z.object({
-// 	SMTP_HOST: validateString('SMTP_HOST'),
-// 	SMTP_PORT: validateEnvNumber('SMTP_PORT', { min: 1, max: 65535, int: true }),
-// 	SMTP_USER: validateString('SMTP_USER'),
-// 	SMTP_PASSWORD: validateString('SMTP_PASSWORD'),
-// });
-
 const allSecretsEnvSchema = z.object({
 	AUTH_SECRET: validateString('AUTH_SECRET'),
 	CSRF_SECRET: validateString('CSRF_SECRET'),
@@ -27,6 +20,12 @@ const cloudinaryEnvSchema = z.object({
 	CLOUDINARY_API_SECRET: validateString('CLOUDINARY_API_SECRET'),
 });
 
+const brevoEnvSchema = z.object({
+	BREVO_API_KEY: validateString('BREVO_API_KEY'),
+	BREVO_SENDER_EMAIL: validateString('BREVO_SENDER_EMAIL'),
+	BREVO_SENDER_NAME: validateString('BREVO_SENDER_NAME'),
+});
+
 export const envSchema = z.object({
 	DATABASE_URL: validateString('DATABASE_URL'),
 	PORT: validateString('PORT').refine(value => !isNaN(Number(value)), 'PORT must be a number'),
@@ -34,10 +33,11 @@ export const envSchema = z.object({
 	COOKIE_DOMAIN: validateString('COOKIE_DOMAIN'),
 	ORIGIN_URL: validateString('ORIGIN_URL'),
 	API_URL: validateString('API_URL'),
+	APP_URL: validateString('APP_URL'),
 	...allSecretsEnvSchema.shape,
 	...googleEnvSchema.shape,
 	...cloudinaryEnvSchema.shape,
-	// ...smtpEnvSchema.shape,
+	...brevoEnvSchema.shape,
 });
 
 export type EnvType = z.infer<typeof envSchema>;

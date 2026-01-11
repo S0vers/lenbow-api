@@ -4,7 +4,7 @@ import {
 	transactionHistoryActionEnum,
 	transactionStatusEnum,
 	transactionTypeEnum,
-} from '../models/drizzle/enum.models';
+} from '../models/drizzle/enum.model';
 import { transactionHistories } from '../models/drizzle/history.model';
 import { transactions, type contacts } from '../models/drizzle/transactions.model';
 

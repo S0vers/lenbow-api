@@ -11,7 +11,7 @@ export class AppController {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan App API - Server Running</title>
+    <title>Lenbow API - Server Running</title>
     <style>
         * {
             margin: 0;
@@ -237,7 +237,7 @@ export class AppController {
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏦 Loan App API</h1>
+            <h1>🏦 Lenbow API</h1>
             <p style="margin-top: 10px; opacity: 0.9;">RESTful API Service</p>
             <div class="status">
                 <span class="status-dot"></span>

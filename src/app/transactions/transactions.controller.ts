@@ -13,11 +13,14 @@ import {
 	Req,
 	UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 import { createApiResponse, type ApiResponse } from '../../core/api-response.interceptor';
+import { EnvType } from '../../core/env';
 import { validateUUID } from '../../core/validators/commonRules';
 import { TransactionHistoryActionEnum } from '../../database/types';
 import { JwtAuthGuard } from '../auth/auth.guard';
+import { BrevoService } from '../brevo/brevo.service';
 import { ContactsService } from '../contacts/contacts.service';
 import { HistoryService } from '../history/history.service';
 import type { TransactionListReturnType, TransactionReturnType } from './@types/transactions.types';
@@ -40,6 +43,8 @@ export class TransactionsController {
 		private readonly transactionsService: TransactionsService,
 		private readonly contactsService: ContactsService,
 		private readonly historyService: HistoryService,
+		private readonly brevoService: BrevoService,
+		private configService: ConfigService<EnvType, true>,
 	) {}
 
 	@UseGuards(JwtAuthGuard)
@@ -116,6 +121,24 @@ export class TransactionsController {
 			details: responseTransaction,
 			occurredAt: new Date(),
 		});
+
+		// TODO: Need to modify later
+		// await this.brevoService.sendFromTemplate({
+		// 	templateKey: 'request_send',
+		// 	to: [{ email: 'tajbink@gmail.com', name: 'Test User' }],
+		// 	params: {
+		// 		borrowerName: req.user?.name || 'User',
+		// 		lenderName: getContact.requestedUserId === borrowerId ? req.user?.name || 'User' : '',
+		// 		amount: transaction.amount,
+		// 		requestDate: transaction.requestDate,
+		// 		dueDate: transaction.dueDate,
+		// 		description: transaction.description || '',
+		// 		transactionId: transaction.publicId,
+		// 		actionUrl: `${this.configService.get('APP_URL')}/requests?search=${transaction.publicId}`,
+		// 		supportEmail: 'support@example.com',
+		// 		year: new Date().getFullYear(),
+		// 	},
+		// });
 
 		return createApiResponse(
 			HttpStatus.CREATED,

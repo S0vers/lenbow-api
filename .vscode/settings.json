@@ -36,6 +36,6 @@
 		".vscode": false
 	},
 	"explorerExclude.backup": {},
-	"cSpell.words": ["Homevest"],
+	"cSpell.words": ["Brevo", "Homevest"],
 	"typescript.preferences.importModuleSpecifier": "relative"
 }

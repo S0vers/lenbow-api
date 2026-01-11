@@ -1,8 +1,8 @@
-# Loan App API - Technical Documentation
+# Lenbow API - Technical Documentation
 
 ## Project Overview
 
-**Loan App API** is a secure, scalable, and production-ready backend application built with modern
+**Lenbow API** is a secure, scalable, and production-ready backend application built with modern
 technologies. It provides a comprehensive API for managing loan transactions, user authentication,
 contacts management, and CSRF protection. The project follows industry best practices and
 enterprise-grade architectural patterns.
@@ -1487,7 +1487,7 @@ Format: Base64(IV + AuthTag + CipherText)
 
 ## Summary
 
-The **Loan App API** is a comprehensive, production-ready backend application demonstrating
+The **Lenbow API** is a comprehensive, production-ready backend application demonstrating
 enterprise-grade architecture and security practices. Built with modern technologies (NestJS,
 TypeScript, PostgreSQL), it implements:
 

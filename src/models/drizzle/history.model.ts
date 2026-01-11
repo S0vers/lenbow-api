@@ -11,7 +11,7 @@ import {
 import { TransactionReturnType } from '../../app/transactions/@types/transactions.types';
 import { timestamps } from '../../database/helpers';
 import { users } from './auth.model';
-import { transactionHistoryActionEnum } from './enum.models';
+import { transactionHistoryActionEnum } from './enum.model';
 import { transactions } from './transactions.model';
 
 export const transactionHistories = pgTable(

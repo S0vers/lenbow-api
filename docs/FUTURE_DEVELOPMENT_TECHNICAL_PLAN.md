@@ -1,4 +1,4 @@
-# Loan App API – Future Development & Technology Implementation Plan
+# Lenbow API – Future Development & Technology Implementation Plan
 
 **Audience:** Engineering / DevOps
 

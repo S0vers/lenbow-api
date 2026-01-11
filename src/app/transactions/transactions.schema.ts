@@ -8,7 +8,7 @@ import {
 	validateString,
 	validateUUID,
 } from '../../core/validators/commonRules';
-import { transactionStatusEnum, transactionTypeEnum } from '../../models/drizzle/enum.models';
+import { transactionStatusEnum, transactionTypeEnum } from '../../models/drizzle/enum.model';
 
 const TRANSACTION_SORTABLE_FIELDS: readonly SortableField[] = [
 	{ name: 'id', queryName: 'id' },

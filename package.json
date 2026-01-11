@@ -28,6 +28,7 @@
 		"db:clear": "ts-node src/database/clean.ts"
 	},
 	"dependencies": {
+		"@getbrevo/brevo": "^3.0.1",
 		"@nestjs/common": "^11.1.9",
 		"@nestjs/config": "^4.0.2",
 		"@nestjs/core": "^11.1.9",
@@ -45,6 +46,7 @@
 		"dotenv": "^17.2.3",
 		"drizzle-kit": "^0.31.8",
 		"drizzle-orm": "^0.45.1",
+		"handlebars": "^4.7.8",
 		"libphonenumber-js": "^1.12.33",
 		"passport": "^0.7.0",
 		"passport-google-oauth20": "^2.0.0",

@@ -10,6 +10,8 @@ import { CsrfModule } from './csrf/csrf.module';
 import { DatabaseModule } from './database/database.module';
 import { ContactsModule } from './app/contacts/contacts.module';
 import { HistoryModule } from './app/history/history.module';
+import { BrevoModule } from './app/brevo/brevo.module';
+import { TemplateModule } from './app/template/template.module';
 
 @Module({
 	imports: [
@@ -25,6 +27,8 @@ import { HistoryModule } from './app/history/history.module';
 		TransactionsModule,
 		ContactsModule,
 		HistoryModule,
+		BrevoModule,
+		TemplateModule,
 	],
 	controllers: [AppController],
 })

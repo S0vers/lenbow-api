@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { timestamps } from '../../database/helpers';
 import { users } from './auth.model';
-import { transactionStatusEnum } from './enum.models';
+import { transactionStatusEnum } from './enum.model';
 
 // Contacts table
 export const contacts = pgTable(

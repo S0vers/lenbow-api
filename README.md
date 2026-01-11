@@ -1,4 +1,4 @@
-# Loan App API
+# Lenbow API
 
 A secure and scalable loan application backend API built with NestJS, PostgreSQL, and Drizzle ORM.
 
