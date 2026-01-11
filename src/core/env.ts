@@ -9,6 +9,12 @@ import { validateEnum, validateString } from './validators/commonRules';
 // 	SMTP_PASSWORD: validateString('SMTP_PASSWORD'),
 // });
 
+const allSecretsEnvSchema = z.object({
+	AUTH_SECRET: validateString('AUTH_SECRET'),
+	CSRF_SECRET: validateString('CSRF_SECRET'),
+	CRYPTO_SECRET: validateString('CRYPTO_SECRET'),
+});
+
 const googleEnvSchema = z.object({
 	GOOGLE_CLIENT_ID: validateString('GOOGLE_CLIENT_ID'),
 	GOOGLE_CLIENT_SECRET: validateString('GOOGLE_CLIENT_SECRET'),
@@ -24,11 +30,11 @@ const cloudinaryEnvSchema = z.object({
 export const envSchema = z.object({
 	DATABASE_URL: validateString('DATABASE_URL'),
 	PORT: validateString('PORT').refine(value => !isNaN(Number(value)), 'PORT must be a number'),
-	SECRET: validateString('SECRET'),
 	NODE_ENV: validateEnum('NODE_ENV', ['development', 'production']).default('development'),
 	COOKIE_DOMAIN: validateString('COOKIE_DOMAIN'),
 	ORIGIN_URL: validateString('ORIGIN_URL'),
 	API_URL: validateString('API_URL'),
+	...allSecretsEnvSchema.shape,
 	...googleEnvSchema.shape,
 	...cloudinaryEnvSchema.shape,
 	// ...smtpEnvSchema.shape,

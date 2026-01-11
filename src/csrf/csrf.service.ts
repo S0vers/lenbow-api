@@ -11,7 +11,7 @@ export class CsrfService {
 	private readonly protection: ReturnType<typeof doubleCsrf>['doubleCsrfProtection'];
 
 	constructor(private readonly configService: ConfigService<EnvType, true>) {
-		const secret = this.configService.get('SECRET', { infer: true });
+		const secret = this.configService.get('CSRF_SECRET', { infer: true });
 
 		const { generateCsrfToken, validateRequest, doubleCsrfProtection } = doubleCsrf({
 			getSecret: () => secret,

@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 				},
 			]),
 			ignoreExpiration: false,
-			secretOrKey: configService.get('SECRET', { infer: true }),
+			secretOrKey: configService.get('AUTH_SECRET', { infer: true }),
 			passReqToCallback: true,
 		});
 	}

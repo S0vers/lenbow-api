@@ -13,7 +13,7 @@ export class CryptoService {
 	private readonly key: Buffer;
 
 	constructor(private readonly configService: ConfigService<EnvType>) {
-		const secret = this.configService.get('SECRET', { infer: true })!;
+		const secret = this.configService.get('CRYPTO_SECRET', { infer: true })!;
 		// Derive a 256-bit key from the secret using scrypt
 		this.key = scryptSync(secret, 'salt', this.keyLength);
 	}
