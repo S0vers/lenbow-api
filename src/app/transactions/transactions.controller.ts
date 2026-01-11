@@ -148,7 +148,7 @@ export class TransactionsController {
 		for (const transaction of transactions) {
 			if (eligibleTransactions.includes(transaction.id)) {
 				await this.historyService.createTransactionHistoryRecord({
-					transactionId: transaction.id,
+					transactionId: null,
 					actorUserId: user!.id,
 					action: 'delete',
 					details: {
