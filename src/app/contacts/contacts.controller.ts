@@ -63,8 +63,13 @@ export class ContactsController {
 	@Get('/:publicId')
 	async getContactByPublicId(
 		@Param('publicId', ParseUUIDPipe) publicId: string,
+		@Req() req: Request,
 	): Promise<ApiResponse<ConnectedContactList>> {
+		const currentUserId = req.user?.publicId;
 		const user = await this.authService.findUserByPublicId(publicId);
+
+		if (user.publicId === currentUserId)
+			throw new BadRequestException('You cannot connect to yourself');
 
 		const contact: ConnectedContactList = {
 			userId: user.publicId,

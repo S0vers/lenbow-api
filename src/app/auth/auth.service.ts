@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+	BadRequestException,
+	Inject,
+	Injectable,
+	NotFoundException,
+	UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -75,7 +81,7 @@ export class AuthService extends DrizzleService {
 			where: eq(schema.users.id, id),
 		});
 
-		if (!user) throw new UnauthorizedException('User not found');
+		if (!user) throw new NotFoundException('User not found');
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { password, ...userWithoutPassword } = user;
@@ -87,7 +93,7 @@ export class AuthService extends DrizzleService {
 			where: eq(schema.users.publicId, publicId),
 		});
 
-		if (!user) throw new UnauthorizedException('User not found');
+		if (!user) throw new NotFoundException('User not found');
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { password, ...userWithoutPassword } = user;
@@ -99,7 +105,7 @@ export class AuthService extends DrizzleService {
 			where: eq(schema.users.email, email),
 		});
 
-		if (!user) throw new UnauthorizedException('User not found');
+		if (!user) throw new NotFoundException('User not found');
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { password, ...userWithoutPassword } = user;
