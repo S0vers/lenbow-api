@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<title>Loan Request Rejected</title>
+		<style type="text/css">
+			/* Mobile Styles */
+			@media only screen and (max-width: 600px) {
+				.mobile-padding {
+					padding: 30px 20px !important;
+				}
+				.mobile-header-padding {
+					padding: 40px 25px 36px !important;
+				}
+				.mobile-text-large {
+					font-size: 26px !important;
+				}
+				.mobile-text-medium {
+					font-size: 20px !important;
+				}
+				.mobile-text-small {
+					font-size: 15px !important;
+				}
+				.mobile-icon {
+					width: 70px !important;
+					height: 70px !important;
+					line-height: 70px !important;
+				}
+				.mobile-icon-size {
+					font-size: 35px !important;
+				}
+				.mobile-amount {
+					font-size: 40px !important;
+				}
+				.mobile-button {
+					padding: 16px 32px !important;
+					font-size: 16px !important;
+					display: block !important;
+					width: 100% !important;
+					box-sizing: border-box !important;
+				}
+				.mobile-stack {
+					display: block !important;
+					width: 100% !important;
+				}
+				.mobile-stack td {
+					display: block !important;
+					width: 100% !important;
+					text-align: left !important;
+					padding: 0 !important;
+				}
+				.mobile-label {
+					padding-bottom: 6px !important;
+				}
+				.mobile-value {
+					padding-bottom: 14px !important;
+				}
+				.mobile-info-padding {
+					padding: 20px !important;
+				}
+			}
+		</style>
+	</head>
+	<body
+		style="
+			margin: 0;
+			padding: 0;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+			background-color: #f0f2f5;
+		"
+	>
+		<!-- Wrapper Table -->
+		<table
+			role="presentation"
+			width="100%"
+			cellpadding="0"
+			cellspacing="0"
+			border="0"
+			style="background-color: #f0f2f5"
+		>
+			<tr>
+				<td align="center" style="padding: 40px 20px">
+					<!-- Main Container Table -->
+					<table
+						role="presentation"
+						width="100%"
+						cellpadding="0"
+						cellspacing="0"
+						border="0"
+						style="
+							max-width: 600px;
+							background-color: #ffffff;
+							border-radius: 16px;
+							overflow: hidden;
+						"
+					>
+						<!-- Header Section -->
+						<tr>
+							<td
+								class="mobile-header-padding"
+								style="background-color: #ef4444; padding: 50px 40px 46px; text-align: center"
+							>
+								<!-- Icon -->
+								<table
+									role="presentation"
+									width="80"
+									cellpadding="0"
+									cellspacing="0"
+									border="0"
+									align="center"
+									style="margin-bottom: 24px"
+								>
+									<tr>
+										<td
+											class="mobile-icon"
+											style="
+												background-color: rgba(255, 255, 255, 0.25);
+												border-radius: 50%;
+												width: 80px;
+												height: 80px;
+												text-align: center;
+												line-height: 80px;
+											"
+										>
+											<span class="mobile-icon-size" style="font-size: 40px; color: #ffffff"
+												>❌</span
+											>
+										</td>
+									</tr>
+								</table>
+
+								<!-- Header Text -->
+								<h1
+									class="mobile-text-large"
+									style="
+										margin: 0 0 12px 0;
+										font-size: 32px;
+										font-weight: 700;
+										color: #ffffff;
+										line-height: 1.2;
+									"
+								>
+									Request Not Approved
+								</h1>
+								<p
+									class="mobile-text-small"
+									style="margin: 0; font-size: 17px; color: #ffffff; opacity: 0.95"
+								>
+									Your loan request was not approved
+								</p>
+							</td>
+						</tr>
+
+						<!-- Accent Bar -->
+						<tr>
+							<td style="background-color: #f87171; height: 4px; line-height: 0; font-size: 0">
+								&nbsp;
+							</td>
+						</tr>
+
+						<!-- Body Section -->
+						<tr>
+							<td class="mobile-padding" style="padding: 45px 40px">
+								<!-- Greeting -->
+								<p
+									class="mobile-text-medium"
+									style="margin: 0 0 18px 0; font-size: 22px; font-weight: 700; color: #1e293b"
+								>
+									Hello {{borrowerName}},
+								</p>
+
+								<!-- Message -->
+								<p
+									class="mobile-text-small"
+									style="margin: 0 0 35px 0; font-size: 16px; line-height: 1.7; color: #475569"
+								>
+									Unfortunately,
+									<strong style="color: #1e293b; font-weight: 600">{{lenderName}}</strong> has
+									decided not to approve your loan request at this time. Please review the details
+									below.
+								</p>
+
+								<!-- Amount Highlight Box -->
+								<table
+									role="presentation"
+									width="100%"
+									cellpadding="0"
+									cellspacing="0"
+									border="0"
+									style="margin-bottom: 30px"
+								>
+									<tr>
+										<td
+											style="
+												background-color: #ef4444;
+												border-radius: 12px;
+												padding: 28px;
+												text-align: center;
+											"
+										>
+											<p
+												style="
+													margin: 0 0 8px 0;
+													font-size: 13px;
+													font-weight: 600;
+													color: rgba(255, 255, 255, 0.85);
+													text-transform: uppercase;
+													letter-spacing: 1px;
+												"
+											>
+												Requested Amount
+											</p>
+											<p
+												class="mobile-amount"
+												style="
+													margin: 0;
+													font-size: 48px;
+													font-weight: 800;
+													color: #ffffff;
+													line-height: 1;
+												"
+											>
+												${{amount}}
+											</p>
+										</td>
+									</tr>
+								</table>
+
+								<!-- Transaction Details Card -->
+								<table
+									role="presentation"
+									width="100%"
+									cellpadding="0"
+									cellspacing="0"
+									border="0"
+									style="
+										background-color: #f8fafc;
+										border: 2px solid #e2e8f0;
+										border-radius: 12px;
+										margin-bottom: 30px;
+									"
+								>
+									<tr>
+										<td class="mobile-info-padding" style="padding: 24px 28px">
+											<!-- Info Row: Rejected By -->
+											<table
+												class="mobile-stack"
+												role="presentation"
+												width="100%"
+												cellpadding="0"
+												cellspacing="0"
+												border="0"
+												style="border-bottom: 1px solid #e2e8f0"
+											>
+												<tr>
+													<td class="mobile-label" style="padding: 14px 0 14px 0">
+														<p style="margin: 0; font-size: 14px; font-weight: 600; color: #64748b">
+															• Rejected By
+														</p>
+													</td>
+													<td class="mobile-value" align="right" style="padding: 14px 0 14px 0">
+														<p style="margin: 0; font-size: 15px; font-weight: 600; color: #1e293b">
+															{{lenderName}}
+														</p>
+													</td>
+												</tr>
+											</table>
+
+											<!-- Info Row: Request Date -->
+											<table
+												class="mobile-stack"
+												role="presentation"
+												width="100%"
+												cellpadding="0"
+												cellspacing="0"
+												border="0"
+												style="border-bottom: 1px solid #e2e8f0"
+											>
+												<tr>
+													<td class="mobile-label" style="padding: 14px 0 14px 0">
+														<p style="margin: 0; font-size: 14px; font-weight: 600; color: #64748b">
+															• Request Date
+														</p>
+													</td>
+													<td class="mobile-value" align="right" style="padding: 14px 0 14px 0">
+														<p style="margin: 0; font-size: 15px; font-weight: 600; color: #1e293b">
+															{{requestDate}}
+														</p>
+													</td>
+												</tr>
+											</table>
+
+											<!-- Info Row: Rejected Date -->
+											<table
+												class="mobile-stack"
+												role="presentation"
+												width="100%"
+												cellpadding="0"
+												cellspacing="0"
+												border="0"
+												style="border-bottom: 1px solid #e2e8f0"
+											>
+												<tr>
+													<td class="mobile-label" style="padding: 14px 0 14px 0">
+														<p style="margin: 0; font-size: 14px; font-weight: 600; color: #64748b">
+															• Rejected Date
+														</p>
+													</td>
+													<td class="mobile-value" align="right" style="padding: 14px 0 14px 0">
+														<p style="margin: 0; font-size: 15px; font-weight: 600; color: #1e293b">
+															{{rejectedAt}}
+														</p>
+													</td>
+												</tr>
+											</table>
+
+											<!-- Info Row: Transaction ID (Last, no border) -->
+											<table
+												class="mobile-stack"
+												role="presentation"
+												width="100%"
+												cellpadding="0"
+												cellspacing="0"
+												border="0"
+											>
+												<tr>
+													<td class="mobile-label" style="padding: 14px 0 0 0">
+														<p style="margin: 0; font-size: 14px; font-weight: 600; color: #64748b">
+															• Transaction ID
+														</p>
+													</td>
+													<td class="mobile-value" align="right" style="padding: 14px 0 0 0">
+														<p style="margin: 0; font-size: 15px; font-weight: 600; color: #1e293b">
+															{{transactionId}}
+														</p>
+													</td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+								</table>
+
+								<!-- Rejection Reason Section (Conditional) -->
+								{{#if rejectionReason}}
+								<table
+									role="presentation"
+									width="100%"
+									cellpadding="0"
+									cellspacing="0"
+									border="0"
+									style="margin-bottom: 35px"
+								>
+									<tr>
+										<td
+											style="
+												background-color: #fee2e2;
+												border-left: 4px solid #ef4444;
+												border-radius: 8px;
+												padding: 24px;
+											"
+										>
+											<p
+												style="
+													margin: 0 0 10px 0;
+													font-size: 12px;
+													font-weight: 700;
+													color: #991b1b;
+													text-transform: uppercase;
+													letter-spacing: 1px;
+												"
+											>
+												📋 Reason for Rejection
+											</p>
+											<p style="margin: 0; font-size: 15px; line-height: 1.7; color: #7f1d1d">
+												{{rejectionReason}}
+											</p>
+										</td>
+									</tr>
+								</table>
+								{{/if}}
+
+								<!-- Description Section (Conditional) -->
+								{{#if description}}
+								<table
+									role="presentation"
+									width="100%"
+									cellpadding="0"
+									cellspacing="0"
+									border="0"
+									style="margin-bottom: 35px"
+								>
+									<tr>
+										<td
+											style="
+												background-color: #f1f5f9;
+												border-left: 4px solid #94a3b8;
+												border-radius: 8px;
+												padding: 24px;
+											"
+										>
+											<p
+												style="
+													margin: 0 0 10px 0;
+													font-size: 12px;
+													font-weight: 700;
+													color: #475569;
+													text-transform: uppercase;
+													letter-spacing: 1px;
+												"
+											>
+												📝 Original Description
+											</p>
+											<p style="margin: 0; font-size: 15px; line-height: 1.7; color: #64748b">
+												{{description}}
+											</p>
+										</td>
+									</tr>
+								</table>
+								{{/if}}
+
+								<!-- Action Button -->
+								<table
+									role="presentation"
+									width="100%"
+									cellpadding="0"
+									cellspacing="0"
+									border="0"
+									style="margin: 35px 0 25px 0"
+								>
+									<tr>
+										<td align="center">
+											<a
+												href="{{actionUrl}}"
+												class="mobile-button"
+												style="
+													display: inline-block;
+													background-color: #64748b;
+													color: #ffffff;
+													text-decoration: none;
+													padding: 18px 48px;
+													border-radius: 12px;
+													font-size: 17px;
+													font-weight: 700;
+													letter-spacing: 0.3px;
+												"
+												>View Details</a
+											>
+										</td>
+									</tr>
+								</table>
+
+								<!-- Divider -->
+								<table
+									role="presentation"
+									width="100%"
+									cellpadding="0"
+									cellspacing="0"
+									border="0"
+									style="margin: 30px 0"
+								>
+									<tr>
+										<td style="border-top: 2px solid #e2e8f0">&nbsp;</td>
+									</tr>
+								</table>
+
+								<!-- Footer Note -->
+								<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+									<tr>
+										<td
+											style="
+												background-color: #fef3c7;
+												border-radius: 8px;
+												padding: 20px;
+												text-align: center;
+											"
+										>
+											<p style="margin: 0; font-size: 14px; line-height: 1.7; color: #78350f">
+												💡 Don't be discouraged! You can try reaching out to other contacts or
+												submit a modified request. We're here to help.
+											</p>
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+
+						<!-- Footer Section -->
+						<tr>
+							<td
+								style="
+									background-color: #f8fafc;
+									padding: 35px 30px;
+									text-align: center;
+									border-top: 1px solid #e2e8f0;
+								"
+							>
+								<p style="margin: 0 0 10px 0; font-size: 13px; color: #64748b; line-height: 1.7">
+									This is an automated notification from Lenbow.
+								</p>
+								<p style="margin: 0 0 10px 0; font-size: 13px; color: #64748b; line-height: 1.7">
+									If you have any questions, please
+									<a
+										href="mailto:{{supportEmail}}"
+										style="color: #ef4444; text-decoration: none; font-weight: 600"
+										>contact support</a
+									>.
+								</p>
+								<p style="margin: 16px 0 0 0; font-size: 12px; color: #94a3b8; line-height: 1.7">
+									&copy; {{year}} Lenbow. All rights reserved.
+								</p>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>

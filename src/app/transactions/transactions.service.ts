@@ -31,6 +31,7 @@ import type {
 	TransactionListReturnType,
 } from './@types/transactions.types';
 import {
+	RequestTransactionQuerySchemaType,
 	ValidateTransactionDto,
 	ValidateUpdateTransactionDto,
 	type TransactionQuerySchemaType,
@@ -135,10 +136,11 @@ export class TransactionsService extends DrizzleService {
 
 		const conditions = [
 			searchExists,
-			or(
-				eq(schema.transactions.borrowerId, currentUserId),
-				eq(schema.transactions.lenderId, currentUserId),
-			),
+			filter.type === 'lend'
+				? eq(schema.transactions.lenderId, currentUserId)
+				: filter.type === 'borrow'
+					? eq(schema.transactions.borrowerId, currentUserId)
+					: undefined,
 			filter.status ? inArray(schema.transactions.status, filter.status) : undefined,
 			fromDate ? gte(schema.transactions.createdAt, fromDate) : undefined,
 			toDate ? lte(schema.transactions.createdAt, toDate) : undefined,
@@ -261,7 +263,7 @@ export class TransactionsService extends DrizzleService {
 	}
 
 	async getRequestedTransactionList(
-		filter: TransactionQuerySchemaType,
+		filter: RequestTransactionQuerySchemaType,
 		currentUserId: number,
 	): Promise<PaginatedResponse<TransactionListReturnType>> {
 		// Create date objects from string inputs if they exist

@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<title>Loan Fully Repaid - Payment Received</title>
+		<style type="text/css">
+			/* Mobile Styles */
+			@media only screen and (max-width: 600px) {
+				.mobile-padding {
+					padding: 30px 20px !important;
+				}
+				.mobile-header-padding {
+					padding: 40px 25px 36px !important;
+				}
+				.mobile-text-large {
+					font-size: 26px !important;
+				}
+				.mobile-text-medium {
+					font-size: 20px !important;
+				}
+				.mobile-text-small {
+					font-size: 15px !important;
+				}
+				.mobile-icon {
+					width: 70px !important;
+					height: 70px !important;
+					line-height: 70px !important;
+				}
+				.mobile-icon-size {
+					font-size: 35px !important;
+				}
+				.mobile-amount {
+					font-size: 40px !important;
+				}
+				.mobile-button {
+					padding: 16px 32px !important;
+					font-size: 16px !important;
+					display: block !important;
+					width: 100% !important;
+					box-sizing: border-box !important;
+				}
+				.mobile-stack {
+					display: block !important;
+					width: 100% !important;
+				}
+				.mobile-stack td {
+					display: block !important;
+					width: 100% !important;
+				}
+			}
+
+			/* Reset Styles */
+			body,
+			table,
+			td,
+			a {
+				-webkit-text-size-adjust: 100%;
+				-ms-text-size-adjust: 100%;
+			}
+			table,
+			td {
+				mso-table-lspace: 0pt;
+				mso-table-rspace: 0pt;
+			}
+			img {
+				-ms-interpolation-mode: bicubic;
+				border: 0;
+				height: auto;
+				line-height: 100%;
+				outline: none;
+				text-decoration: none;
+			}
+		</style>
+	</head>
+	<body
+		style="
+			margin: 0;
+			padding: 0;
+			font-family:
+				-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+			background-color: #f3f4f6;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+		"
+	>
+		<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+			<tr>
+				<td align="center" style="padding: 40px 20px; background-color: #f3f4f6">
+					<!-- Main Container -->
+					<table
+						role="presentation"
+						width="600"
+						cellspacing="0"
+						cellpadding="0"
+						border="0"
+						style="
+							max-width: 600px;
+							width: 100%;
+							background-color: #ffffff;
+							border-radius: 16px;
+							overflow: hidden;
+							box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+						"
+					>
+						<!-- Header with Gradient -->
+						<tr>
+							<td
+								class="mobile-header-padding"
+								style="
+									padding: 48px 40px 44px;
+									text-align: center;
+									background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+									position: relative;
+								"
+							>
+								<!-- Success Icon -->
+								<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+									<tr>
+										<td align="center">
+											<div
+												class="mobile-icon"
+												style="
+													display: inline-block;
+													width: 80px;
+													height: 80px;
+													background-color: rgba(255, 255, 255, 0.2);
+													border-radius: 50%;
+													line-height: 80px;
+													margin-bottom: 20px;
+												"
+											>
+												<span
+													class="mobile-icon-size"
+													style="font-size: 40px; color: #ffffff; font-weight: bold"
+													>✓</span
+												>
+											</div>
+										</td>
+									</tr>
+								</table>
+
+								<h1
+									class="mobile-text-large"
+									style="
+										margin: 0 0 12px;
+										font-size: 32px;
+										font-weight: 700;
+										color: #ffffff;
+										line-height: 1.2;
+									"
+								>
+									Payment Received!
+								</h1>
+								<p
+									class="mobile-text-small"
+									style="
+										margin: 0;
+										font-size: 17px;
+										color: rgba(255, 255, 255, 0.95);
+										line-height: 1.5;
+									"
+								>
+									{{borrowerName}} has fully repaid the loan
+								</p>
+							</td>
+						</tr>
+
+						<!-- Body Content -->
+						<tr>
+							<td class="mobile-padding" style="padding: 40px 40px 32px">
+								<p
+									class="mobile-text-small"
+									style="margin: 0 0 28px; font-size: 16px; color: #374151; line-height: 1.6"
+								>
+									Hi <strong>{{lenderName}}</strong>,
+								</p>
+
+								<p
+									class="mobile-text-small"
+									style="margin: 0 0 28px; font-size: 16px; color: #374151; line-height: 1.6"
+								>
+									Great news! <strong>{{borrowerName}}</strong> has successfully completed the full
+									repayment of the loan. The transaction is now closed.
+								</p>
+
+								<!-- Amount Highlight Box -->
+								<table
+									role="presentation"
+									width="100%"
+									cellspacing="0"
+									cellpadding="0"
+									border="0"
+									style="margin-bottom: 32px"
+								>
+									<tr>
+										<td
+											style="
+												background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+												border-radius: 12px;
+												padding: 28px;
+												text-align: center;
+												border: 2px solid #10b981;
+											"
+										>
+											<p
+												style="
+													margin: 0 0 8px;
+													font-size: 14px;
+													color: #059669;
+													font-weight: 600;
+													text-transform: uppercase;
+													letter-spacing: 0.5px;
+												"
+											>
+												Total Amount Received
+											</p>
+											<p
+												class="mobile-amount"
+												style="
+													margin: 0;
+													font-size: 48px;
+													font-weight: 700;
+													color: #047857;
+													line-height: 1.1;
+												"
+											>
+												$<span>{{amount}}</span>
+											</p>
+										</td>
+									</tr>
+								</table>
+
+								<!-- Loan Details Card -->
+								<table
+									role="presentation"
+									width="100%"
+									cellspacing="0"
+									cellpadding="0"
+									border="0"
+									style="margin-bottom: 32px"
+								>
+									<tr>
+										<td
+											style="
+												background-color: #f9fafb;
+												border-radius: 12px;
+												padding: 24px;
+												border: 1px solid #e5e7eb;
+											"
+										>
+											<h2
+												class="mobile-text-medium"
+												style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #111827"
+											>
+												Loan Summary
+											</h2>
+
+											<!-- Detail Row -->
+											<table
+												role="presentation"
+												width="100%"
+												cellspacing="0"
+												cellpadding="0"
+												border="0"
+												style="margin-bottom: 14px"
+											>
+												<tr>
+													<td
+														style="
+															font-size: 15px;
+															color: #6b7280;
+															padding: 8px 0;
+															border-bottom: 1px solid #e5e7eb;
+														"
+													>
+														Borrower
+													</td>
+													<td
+														align="right"
+														style="
+															font-size: 15px;
+															color: #111827;
+															font-weight: 600;
+															padding: 8px 0;
+															border-bottom: 1px solid #e5e7eb;
+														"
+													>
+														{{borrowerName}}
+													</td>
+												</tr>
+											</table>
+
+											<!-- Detail Row -->
+											<table
+												role="presentation"
+												width="100%"
+												cellspacing="0"
+												cellpadding="0"
+												border="0"
+												style="margin-bottom: 14px"
+											>
+												<tr>
+													<td
+														style="
+															font-size: 15px;
+															color: #6b7280;
+															padding: 8px 0;
+															border-bottom: 1px solid #e5e7eb;
+														"
+													>
+														Loan Start Date
+													</td>
+													<td
+														align="right"
+														style="
+															font-size: 15px;
+															color: #111827;
+															font-weight: 600;
+															padding: 8px 0;
+															border-bottom: 1px solid #e5e7eb;
+														"
+													>
+														{{requestDate}}
+													</td>
+												</tr>
+											</table>
+
+											<!-- Detail Row -->
+											<table
+												role="presentation"
+												width="100%"
+												cellspacing="0"
+												cellpadding="0"
+												border="0"
+											>
+												<tr>
+													<td
+														style="
+															font-size: 15px;
+															color: #6b7280;
+															padding: 8px 0;
+															border-bottom: 1px solid #e5e7eb;
+														"
+													>
+														Completed Date
+													</td>
+													<td
+														align="right"
+														style="
+															font-size: 15px;
+															color: #111827;
+															font-weight: 600;
+															padding: 8px 0;
+															border-bottom: 1px solid #e5e7eb;
+														"
+													>
+														{{completedAt}}
+													</td>
+												</tr>
+											</table>
+
+											<!-- Detail Row -->
+											<table
+												role="presentation"
+												width="100%"
+												cellspacing="0"
+												cellpadding="0"
+												border="0"
+											>
+												<tr>
+													<td style="font-size: 15px; color: #6b7280; padding: 8px 0">
+														Transaction ID
+													</td>
+													<td
+														align="right"
+														style="
+															font-size: 13px;
+															color: #6b7280;
+															font-family: 'Courier New', monospace;
+															padding: 8px 0;
+															word-break: break-all;
+														"
+													>
+														{{transactionId}}
+													</td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+								</table>
+
+								<!-- Success Message -->
+								<table
+									role="presentation"
+									width="100%"
+									cellspacing="0"
+									cellpadding="0"
+									border="0"
+									style="margin-bottom: 32px"
+								>
+									<tr>
+										<td
+											style="
+												background-color: #ecfdf5;
+												border-left: 4px solid #10b981;
+												padding: 20px;
+												border-radius: 8px;
+											"
+										>
+											<p style="margin: 0; font-size: 15px; color: #047857; line-height: 1.6">
+												<strong>✓ Transaction Complete:</strong> This loan has been fully settled
+												and is now closed. Thank you for your support in helping {{borrowerName}}.
+											</p>
+										</td>
+									</tr>
+								</table>
+
+								<!-- Action Button -->
+								<table
+									role="presentation"
+									width="100%"
+									cellspacing="0"
+									cellpadding="0"
+									border="0"
+									style="margin-bottom: 32px"
+								>
+									<tr>
+										<td align="center">
+											<a
+												href="{{actionUrl}}"
+												class="mobile-button"
+												style="
+													display: inline-block;
+													padding: 16px 40px;
+													background-color: #10b981;
+													color: #ffffff;
+													text-decoration: none;
+													border-radius: 8px;
+													font-size: 16px;
+													font-weight: 600;
+													transition: background-color 0.2s;
+												"
+												>View Transaction Details</a
+											>
+										</td>
+									</tr>
+								</table>
+
+								<p
+									class="mobile-text-small"
+									style="margin: 0 0 12px; font-size: 15px; color: #6b7280; line-height: 1.6"
+								>
+									If you have any questions about this transaction, please don't hesitate to reach
+									out.
+								</p>
+
+								<p
+									class="mobile-text-small"
+									style="margin: 0; font-size: 15px; color: #6b7280; line-height: 1.6"
+								>
+									Best regards,<br />
+									<strong style="color: #374151">The Loan App Team</strong>
+								</p>
+							</td>
+						</tr>
+
+						<!-- Footer -->
+						<tr>
+							<td
+								style="padding: 32px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb"
+							>
+								<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+									<tr>
+										<td align="center" style="padding-bottom: 16px">
+											<p
+												style="margin: 0 0 12px; font-size: 13px; color: #9ca3af; line-height: 1.6"
+											>
+												Need help? Contact our support team
+											</p>
+											<a
+												href="mailto:{{supportEmail}}"
+												style="
+													font-size: 13px;
+													color: #10b981;
+													text-decoration: none;
+													font-weight: 500;
+												"
+												>{{supportEmail}}</a
+											>
+										</td>
+									</tr>
+									<tr>
+										<td align="center" style="padding-top: 16px; border-top: 1px solid #e5e7eb">
+											<p style="margin: 0; font-size: 12px; color: #9ca3af; line-height: 1.5">
+												© {{year}} Loan App. All rights reserved.
+											</p>
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>

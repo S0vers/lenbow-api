@@ -4,7 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-		<title>Loan Request Approved</title>
+		<title>Repayment Request Received</title>
 		<style type="text/css">
 			/* Mobile Styles */
 			@media only screen and (max-width: 600px) {
@@ -100,7 +100,7 @@
 						<tr>
 							<td
 								class="mobile-header-padding"
-								style="background-color: #10b981; padding: 50px 40px 46px; text-align: center"
+								style="background-color: #3b82f6; padding: 50px 40px 46px; text-align: center"
 							>
 								<!-- Icon -->
 								<table
@@ -125,7 +125,7 @@
 											"
 										>
 											<span class="mobile-icon-size" style="font-size: 40px; color: #ffffff"
-												>✅</span
+												>💸</span
 											>
 										</td>
 									</tr>
@@ -142,20 +142,20 @@
 										line-height: 1.2;
 									"
 								>
-									Request Approved!
+									Repayment Request
 								</h1>
 								<p
 									class="mobile-text-small"
 									style="margin: 0; font-size: 17px; color: #ffffff; opacity: 0.95"
 								>
-									Your loan request has been approved
+									You have received a repayment request
 								</p>
 							</td>
 						</tr>
 
 						<!-- Accent Bar -->
 						<tr>
-							<td style="background-color: #34d399; height: 4px; line-height: 0; font-size: 0">
+							<td style="background-color: #60a5fa; height: 4px; line-height: 0; font-size: 0">
 								&nbsp;
 							</td>
 						</tr>
@@ -168,7 +168,7 @@
 									class="mobile-text-medium"
 									style="margin: 0 0 18px 0; font-size: 22px; font-weight: 700; color: #1e293b"
 								>
-									Great News, {{borrowerName}}!
+									Hello {{lenderName}},
 								</p>
 
 								<!-- Message -->
@@ -176,9 +176,9 @@
 									class="mobile-text-small"
 									style="margin: 0 0 35px 0; font-size: 16px; line-height: 1.7; color: #475569"
 								>
-									<strong style="color: #1e293b; font-weight: 600">{{lenderName}}</strong> has
-									approved your loan request. The funds are now available. Please review the details
-									below.
+									<strong style="color: #1e293b; font-weight: 600">{{borrowerName}}</strong> has
+									requested to repay a loan. Please review the repayment details below and approve
+									or reject the payment.
 								</p>
 
 								<!-- Amount Highlight Box -->
@@ -193,7 +193,7 @@
 									<tr>
 										<td
 											style="
-												background-color: #10b981;
+												background-color: #3b82f6;
 												border-radius: 12px;
 												padding: 28px;
 												text-align: center;
@@ -209,7 +209,7 @@
 													letter-spacing: 1px;
 												"
 											>
-												Approved Amount
+												Repayment Amount
 											</p>
 											<p
 												class="mobile-amount"
@@ -221,7 +221,7 @@
 													line-height: 1;
 												"
 											>
-												${{amount}}
+												${{reviewAmount}}
 											</p>
 										</td>
 									</tr>
@@ -243,7 +243,7 @@
 								>
 									<tr>
 										<td class="mobile-info-padding" style="padding: 24px 28px">
-											<!-- Info Row: Approved By -->
+											<!-- Info Row: Requested By -->
 											<table
 												class="mobile-stack"
 												role="presentation"
@@ -256,18 +256,18 @@
 												<tr>
 													<td class="mobile-label" style="padding: 14px 0 14px 0">
 														<p style="margin: 0; font-size: 14px; font-weight: 600; color: #64748b">
-															• Approved By
+															• Requested By
 														</p>
 													</td>
 													<td class="mobile-value" align="right" style="padding: 14px 0 14px 0">
 														<p style="margin: 0; font-size: 15px; font-weight: 600; color: #1e293b">
-															{{lenderName}}
+															{{borrowerName}}
 														</p>
 													</td>
 												</tr>
 											</table>
 
-											<!-- Info Row: Request Date -->
+											<!-- Info Row: Original Loan Amount -->
 											<table
 												class="mobile-stack"
 												role="presentation"
@@ -280,18 +280,18 @@
 												<tr>
 													<td class="mobile-label" style="padding: 14px 0 14px 0">
 														<p style="margin: 0; font-size: 14px; font-weight: 600; color: #64748b">
-															• Request Date
+															• Original Loan Amount
 														</p>
 													</td>
 													<td class="mobile-value" align="right" style="padding: 14px 0 14px 0">
 														<p style="margin: 0; font-size: 15px; font-weight: 600; color: #1e293b">
-															{{requestDate}}
+															${{amount}}
 														</p>
 													</td>
 												</tr>
 											</table>
 
-											<!-- Info Row: Approved Date -->
+											<!-- Info Row: Amount Paid So Far -->
 											<table
 												class="mobile-stack"
 												role="presentation"
@@ -304,19 +304,18 @@
 												<tr>
 													<td class="mobile-label" style="padding: 14px 0 14px 0">
 														<p style="margin: 0; font-size: 14px; font-weight: 600; color: #64748b">
-															• Approved Date
+															• Amount Paid So Far
 														</p>
 													</td>
 													<td class="mobile-value" align="right" style="padding: 14px 0 14px 0">
 														<p style="margin: 0; font-size: 15px; font-weight: 600; color: #1e293b">
-															{{acceptedAt}}
+															${{amountPaid}}
 														</p>
 													</td>
 												</tr>
 											</table>
 
-											<!-- Info Row: Due Date (Conditional) -->
-											{{#if dueDate}}
+											<!-- Info Row: Remaining Balance -->
 											<table
 												class="mobile-stack"
 												role="presentation"
@@ -329,17 +328,16 @@
 												<tr>
 													<td class="mobile-label" style="padding: 14px 0 14px 0">
 														<p style="margin: 0; font-size: 14px; font-weight: 600; color: #64748b">
-															• Due Date
+															• Remaining Balance
 														</p>
 													</td>
 													<td class="mobile-value" align="right" style="padding: 14px 0 14px 0">
 														<p style="margin: 0; font-size: 15px; font-weight: 600; color: #1e293b">
-															{{dueDate}}
+															${{remainingAmount}}
 														</p>
 													</td>
 												</tr>
 											</table>
-											{{/if}}
 
 											<!-- Info Row: Transaction ID (Last, no border) -->
 											<table
@@ -367,45 +365,6 @@
 									</tr>
 								</table>
 
-								<!-- Description Section (Conditional) -->
-								{{#if description}}
-								<table
-									role="presentation"
-									width="100%"
-									cellpadding="0"
-									cellspacing="0"
-									border="0"
-									style="margin-bottom: 35px"
-								>
-									<tr>
-										<td
-											style="
-												background-color: #d1fae5;
-												border-left: 4px solid #10b981;
-												border-radius: 8px;
-												padding: 24px;
-											"
-										>
-											<p
-												style="
-													margin: 0 0 10px 0;
-													font-size: 12px;
-													font-weight: 700;
-													color: #065f46;
-													text-transform: uppercase;
-													letter-spacing: 1px;
-												"
-											>
-												📝 Description
-											</p>
-											<p style="margin: 0; font-size: 15px; line-height: 1.7; color: #047857">
-												{{description}}
-											</p>
-										</td>
-									</tr>
-								</table>
-								{{/if}}
-
 								<!-- Action Button -->
 								<table
 									role="presentation"
@@ -422,7 +381,7 @@
 												class="mobile-button"
 												style="
 													display: inline-block;
-													background-color: #10b981;
+													background-color: #3b82f6;
 													color: #ffffff;
 													text-decoration: none;
 													padding: 18px 48px;
@@ -431,7 +390,7 @@
 													font-weight: 700;
 													letter-spacing: 0.3px;
 												"
-												>View Transaction</a
+												>Review Repayment</a
 											>
 										</td>
 									</tr>
@@ -456,15 +415,15 @@
 									<tr>
 										<td
 											style="
-												background-color: #d1fae5;
+												background-color: #dbeafe;
 												border-radius: 8px;
 												padding: 20px;
 												text-align: center;
 											"
 										>
-											<p style="margin: 0; font-size: 14px; line-height: 1.7; color: #065f46">
-												🎉 Congratulations! The loan has been approved. Make sure to review the
-												repayment terms and keep track of the due date.
+											<p style="margin: 0; font-size: 14px; line-height: 1.7; color: #1e40af">
+												Please review and confirm the repayment to update the loan balance. You can
+												approve or reject this repayment from your dashboard.
 											</p>
 										</td>
 									</tr>
@@ -489,7 +448,7 @@
 									If you have any questions, please
 									<a
 										href="mailto:{{supportEmail}}"
-										style="color: #10b981; text-decoration: none; font-weight: 600"
+										style="color: #3b82f6; text-decoration: none; font-weight: 600"
 										>contact support</a
 									>.
 								</p>

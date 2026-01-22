@@ -22,6 +22,20 @@ const TRANSACTION_SORTABLE_FIELDS: readonly SortableField[] = [
 ] as const;
 
 export const transactionQuerySchema = baseQuerySchema(TRANSACTION_SORTABLE_FIELDS).extend({
+	type: validateEnum('Type', transactionTypeEnum.enumValues).optional(),
+	status: validateString('Status')
+		.transform(val => {
+			if (!val?.trim()) return [];
+			return val
+				.split(',')
+				.map(v => v.trim())
+				.filter(Boolean)
+				.map(v => validateEnum('Status', transactionStatusEnum.enumValues).parse(v));
+		})
+		.optional(),
+});
+
+export const requestTransactionQuerySchema = baseQuerySchema(TRANSACTION_SORTABLE_FIELDS).extend({
 	type: validateString('Type')
 		.transform(val => {
 			if (!val?.trim()) return [];
@@ -95,6 +109,7 @@ export const validateDeleteTransactionSchema = z.object({
 });
 
 export type TransactionQuerySchemaType = z.infer<typeof transactionQuerySchema>;
+export type RequestTransactionQuerySchemaType = z.infer<typeof requestTransactionQuerySchema>;
 export type ValidateTransactionDto = z.infer<typeof validateTransactionSchema>;
 export type ValidateUpdateStatusTransactionDto = z.infer<
 	typeof validateUpdateStatusTransactionSchema
