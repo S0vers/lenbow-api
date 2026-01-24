@@ -1,10 +1,10 @@
-import { TransactionHistoriesSchemaType } from '../../../database/types';
+import { TransactionOldHistoriesSchemaType } from '../../../database/types';
 
-export type TransactionHistoriesDataType = Omit<
-	TransactionHistoriesSchemaType,
+export type TransactionOldHistoriesDataType = Omit<
+	TransactionOldHistoriesSchemaType,
 	'id' | 'publicId' | 'createdAt' | 'updatedAt'
 >;
 
-export type TransactionHistoriesReturnType = TransactionHistoriesDataType & {
+export type TransactionOldHistoriesReturnType = TransactionOldHistoriesDataType & {
 	id: string;
 };

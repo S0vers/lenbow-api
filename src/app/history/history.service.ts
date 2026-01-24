@@ -3,7 +3,7 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from '../../database/connection';
 import schema from '../../database/schema';
 import DrizzleService from '../../database/service';
-import { TransactionHistoriesDataType } from './@types/history.types';
+import { TransactionOldHistoriesDataType } from './@types/history.types';
 
 @Injectable()
 export class HistoryService extends DrizzleService {
@@ -14,12 +14,14 @@ export class HistoryService extends DrizzleService {
 		super(db);
 	}
 
-	async createTransactionHistoryRecord(data: TransactionHistoriesDataType) {
+	async createTransactionHistoryRecord(data: TransactionOldHistoriesDataType) {
 		const result = await this.getDb()
-			.insert(schema.transactionHistories)
+			.insert(schema.transactionOldHistories)
 			.values(data)
 			.returning()
 			.then(res => res[0]);
 		return result;
 	}
+
+	async getTransactionHistory() {}
 }
