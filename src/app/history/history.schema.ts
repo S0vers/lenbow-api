@@ -1,3 +1,4 @@
+import z from 'zod';
 import { baseQuerySchema, SortableField } from '../../core/validators/baseQuery.schema';
 import { validateEnum, validateString } from '../../core/validators/commonRules';
 import { transactionStatusEnum, transactionTypeEnum } from '../../models/drizzle/enum.model';
@@ -37,3 +38,5 @@ export const transactionHistoryQuerySchema = baseQuerySchema(
 		})
 		.optional(),
 });
+
+export type TransactionHistoryQuerySchemaType = z.infer<typeof transactionHistoryQuerySchema>;

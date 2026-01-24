@@ -16,6 +16,22 @@ export type TransactionHistoryDataEntryType = Omit<
 	'id' | 'publicId' | 'createdAt' | 'updatedAt'
 >;
 
-export type TransactionHistoriesReturnType = TransactionHistoriesDataType & {
+export type TransactionHistoriesReturnType = Omit<
+	TransactionHistoriesSchemaType,
+	'id' | 'borrowerId' | 'lenderId'
+> & {
 	id: string;
+	type: 'lend' | 'borrow';
+	borrower: {
+		id: string;
+		name: string | null;
+		email: string;
+		image: string | null;
+	};
+	lender: {
+		id: string;
+		name: string | null;
+		email: string;
+		image: string | null;
+	};
 };
