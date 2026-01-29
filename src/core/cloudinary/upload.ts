@@ -161,6 +161,78 @@ export class CloudinaryImageService {
 	}
 
 	/**
+	 * Upload image with face detection
+	 * @param source - Buffer or URL of the image
+	 * @param options - Upload options with face detection settings
+	 * @returns Upload result with face detection data
+	 */
+	async uploadWithFaceDetection(
+		source: Buffer | string,
+		options?: UploadOptions & {
+			cropToFace?: boolean;
+			gravity?: 'face' | 'faces' | 'face:center' | 'face:auto';
+			zoom?: number;
+			size?: number;
+		},
+	): Promise<UploadResult> {
+		try {
+			const uploadOptions: Record<string, any> = {
+				...this.buildUploadOptions(options),
+				faces: true, // Return face coordinates
+			};
+
+			// Set 1:1 aspect ratio (square) with face detection
+			const size = options?.size || 500; // Default 500x500
+			uploadOptions.width = size;
+			uploadOptions.height = size;
+			uploadOptions.crop = 'fill';
+			uploadOptions.gravity = options?.gravity || 'face';
+			uploadOptions.aspect_ratio = '1:1';
+
+			// If crop to face is enabled, add zoom
+			if (options?.cropToFace && options.zoom) {
+				uploadOptions.zoom = options.zoom;
+			}
+
+			let result: UploadApiResponse;
+
+			// Handle buffer or URL
+			if (Buffer.isBuffer(source)) {
+				result = await new Promise((resolve, reject) => {
+					const uploadStream = cloudinary.uploader.upload_stream(
+						uploadOptions,
+						(
+							error: UploadApiErrorResponse | undefined,
+							uploadResult: UploadApiResponse | undefined,
+						) => {
+							if (error || !uploadResult) {
+								reject(new Error(error?.message || 'Upload failed'));
+							} else {
+								resolve(uploadResult);
+							}
+						},
+					);
+
+					const readable = Readable.from(source);
+					readable.pipe(uploadStream);
+				});
+			} else {
+				result = await cloudinary.uploader.upload(source, uploadOptions);
+			}
+
+			return {
+				success: true,
+				data: result,
+			};
+		} catch (error) {
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Face detection upload failed',
+			};
+		}
+	}
+
+	/**
 	 * Build upload options with WebP conversion and quality optimization
 	 * @param options - User provided options
 	 * @returns Cloudinary upload options

@@ -15,7 +15,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UploadApiResponse } from 'cloudinary';
 import type { Request as ExpressRequest, Response } from 'express';
 import { memoryStorage } from 'multer';
 import { type ApiResponse, createApiResponse } from '../../core/api-response.interceptor';
@@ -206,41 +205,32 @@ export class AuthController {
 		@Req() request: ExpressRequest,
 	): Promise<ApiResponse<UserWithoutPassword>> {
 		const userId = Number(request.user?.id);
-		const result = await this.cloudinaryImageService.uploadFromBuffer(file.buffer);
+		const result = await this.cloudinaryImageService.uploadWithFaceDetection(file.buffer, {
+			size: 200,
+			gravity: 'face:auto',
+		});
 
-		// Validate 1:1 aspect ratio (square images only)
-		const width = result.data?.width;
-		const height = result.data?.height;
-
-		if (!width || !height) {
-			throw new BadRequestException('Unable to determine image dimensions');
-		}
-
-		if (width !== height) {
-			// Delete the uploaded image from Cloudinary since it doesn't meet requirements
-			await this.cloudinaryImageService.deleteMedia(result.data!.public_id);
-			throw new BadRequestException(
-				`Only square images (1:1 ratio) are allowed. Your image is ${width}x${height}`,
-			);
+		if (!result.success || !result.data) {
+			throw new BadRequestException('Failed to upload image');
 		}
 
 		const data: MediaDataType = {
 			altText: null,
-			secureUrl: result.data!.secure_url,
+			secureUrl: result.data.secure_url,
 			filename: file.originalname,
 			mimeType: file.mimetype,
 			fileExtension: file.originalname.split('.').pop() || '',
 			fileSize: file.size,
-			storageKey: result.data!.public_id,
+			storageKey: result.data.public_id,
 			mediaType: file.mimetype.startsWith('image/') ? 'image' : 'other',
-			storageMetadata: result.data!,
+			storageMetadata: result.data,
 			uploadedBy: userId,
 			caption: null,
 			description: null,
-			tags: result.data!.tags || [],
-			duration: result.data!.duration || null,
-			width: result.data!.width || null,
-			height: result.data!.height || null,
+			tags: result.data.tags || [],
+			duration: result.data.duration || null,
+			width: result.data.width || null,
+			height: result.data.height || null,
 		};
 
 		// Delete previous image from Cloudinary if exists
@@ -251,7 +241,7 @@ export class AuthController {
 
 		const response = await this.authService.updateUser(userId, {
 			image: data.secureUrl!,
-			imageInformation: result.data as UploadApiResponse,
+			imageInformation: result.data,
 		});
 
 		return createApiResponse(HttpStatus.OK, 'Media uploaded successfully', response);
