@@ -177,6 +177,7 @@ export class TransactionsService extends DrizzleService {
 		// Create aliases for joining users table twice
 		const borrowerUser = aliasedTable(schema.users, 'borrower');
 		const lenderUser = aliasedTable(schema.users, 'lender');
+		const creatorUser = aliasedTable(schema.users, 'creator');
 
 		// Build query with all possible combinations
 		const baseSelect = this.getDb()
@@ -210,12 +211,14 @@ export class TransactionsService extends DrizzleService {
 				acceptedAt: schema.transactions.acceptedAt,
 				completedAt: schema.transactions.completedAt,
 				rejectedAt: schema.transactions.rejectedAt,
+				createdBy: creatorUser.publicId,
 				createdAt: schema.transactions.createdAt,
 				updatedAt: schema.transactions.updatedAt,
 			})
 			.from(schema.transactions)
 			.innerJoin(borrowerUser, eq(schema.transactions.borrowerId, borrowerUser.id))
 			.innerJoin(lenderUser, eq(schema.transactions.lenderId, lenderUser.id))
+			.innerJoin(creatorUser, eq(schema.transactions.createdBy, creatorUser.id))
 			.where(whereClause);
 
 		let rawData;
@@ -397,9 +400,10 @@ export class TransactionsService extends DrizzleService {
 		// Determine which orderBy to use based on which table contains the field
 		const orderBy = transactionOrderBy;
 
-		// Create aliases for joining users table twice
+		// Create aliases for joining users table three times
 		const borrowerUser = aliasedTable(schema.users, 'borrower');
 		const lenderUser = aliasedTable(schema.users, 'lender');
+		const creatorUser = aliasedTable(schema.users, 'creator');
 
 		// Build query with all possible combinations
 		const baseSelect = this.getDb()
@@ -433,12 +437,14 @@ export class TransactionsService extends DrizzleService {
 				acceptedAt: schema.transactions.acceptedAt,
 				completedAt: schema.transactions.completedAt,
 				rejectedAt: schema.transactions.rejectedAt,
+				createdBy: creatorUser.publicId,
 				createdAt: schema.transactions.createdAt,
 				updatedAt: schema.transactions.updatedAt,
 			})
 			.from(schema.transactions)
 			.innerJoin(borrowerUser, eq(schema.transactions.borrowerId, borrowerUser.id))
 			.innerJoin(lenderUser, eq(schema.transactions.lenderId, lenderUser.id))
+			.innerJoin(creatorUser, eq(schema.transactions.createdBy, creatorUser.id))
 			.where(whereClause);
 
 		let rawData;

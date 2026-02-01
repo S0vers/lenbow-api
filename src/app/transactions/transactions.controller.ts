@@ -17,7 +17,6 @@ import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 import { createApiResponse, type ApiResponse } from '../../core/api-response.interceptor';
 import { EnvType } from '../../core/env';
-import { validateUUID } from '../../core/validators/commonRules';
 import { TransactionHistoryActionEnum } from '../../database/types';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { AuthService } from '../auth/auth.service';
@@ -34,12 +33,14 @@ import type {
 import {
 	requestTransactionQuerySchema,
 	transactionQuerySchema,
+	validateIncomingTransactionSchema,
 	validateTransactionSchema,
 	validateUpdateStatusTransactionSchema,
 	validateUpdateTransactionSchema,
 	type RequestTransactionQuerySchemaType,
 	type TransactionQuerySchemaType,
 	type ValidateDeleteTransactionDto,
+	type ValidateIncomingTransactionDto,
 	type ValidateTransactionDto,
 	type ValidateUpdateStatusTransactionDto,
 	type ValidateUpdateTransactionDto,
@@ -86,39 +87,61 @@ export class TransactionsController {
 	@UseGuards(JwtAuthGuard)
 	@Post('')
 	async createTransaction(
-		@Body() validateTransactionDto: ValidateTransactionDto,
+		@Body() incomingDto: ValidateIncomingTransactionDto,
 		@Req() req: Request,
 	): Promise<ApiResponse<TransactionReturnType>> {
-		const borrowerId = Number(req.user?.id);
-		const lenderId = String(validateTransactionDto.lenderId);
+		const loggedInUserId = Number(req.user?.id);
+		const contactId = String(incomingDto.contactId);
 
-		const checkUUID = validateUUID('Lender ID').safeParse(lenderId);
-		if (!checkUUID.success) {
-			throw new BadRequestException(`Validation failed: ${checkUUID.error.issues[0].message}`);
+		// Validate incoming data
+		const validateIncoming = validateIncomingTransactionSchema.safeParse(incomingDto);
+		if (!validateIncoming.success) {
+			throw new BadRequestException(
+				`Validation failed: ${validateIncoming.error.issues.map(issue => issue.message).join(', ')}`,
+			);
 		}
 
 		const getContact = await this.contactsService.getOrCreateContactByPublicId(
-			lenderId,
-			borrowerId,
+			contactId,
+			loggedInUserId,
 		);
+
+		// Determine the other user's ID from the contact
+		const otherUserId =
+			loggedInUserId === getContact.connectedUserId
+				? getContact.requestedUserId
+				: getContact.connectedUserId;
+
+		// Determine borrowerId and lenderId based on transaction type
+		let borrowerId: number;
+		let lenderId: number;
+
+		if (validateIncoming.data.type === 'borrow') {
+			// Logged-in user is borrowing from the contact
+			borrowerId = loggedInUserId;
+			lenderId = otherUserId;
+		} else {
+			// type === 'lend': Logged-in user is lending to the contact
+			borrowerId = otherUserId;
+			lenderId = loggedInUserId;
+		}
 
 		// Get currency details
 		const currencyDetails = await this.currencyService.getCurrencyByCode(
-			validateTransactionDto.currency,
+			validateIncoming.data.currency,
 		);
 
 		const extendedDto: ValidateTransactionDto = {
-			...validateTransactionDto,
+			...validateIncoming.data,
 			borrowerId,
-			lenderId:
-				borrowerId === getContact.connectedUserId
-					? getContact.requestedUserId
-					: getContact.connectedUserId,
+			lenderId,
 			status: 'pending',
+			createdBy: loggedInUserId,
 		};
 
-		// Check if logged in user has default currency set, if not set it
-		if (!req.user?.currencyCode) {
+		// Check if borrower has default currency set, if not set it
+		// Only set currency if the borrower is the logged-in user
+		if (borrowerId === loggedInUserId && !req.user?.currencyCode) {
 			await this.currencyService.addCurrencyToUser(borrowerId, currencyDetails.code);
 		}
 
@@ -394,14 +417,22 @@ export class TransactionsController {
 			);
 		}
 
+		// Determine who should approve based on who created the transaction
+		// If borrower created it (type: borrow), lender must accept/reject
+		// If lender created it (type: lend), borrower must accept/reject
+		const isCreatedByBorrower = transaction.createdBy === transaction.borrowerId;
+		const requiredApproverId = isCreatedByBorrower ? transaction.lenderId : transaction.borrowerId;
+
 		if (
 			(validate.data.status === 'accepted' ||
 				validate.data.status === 'rejected' ||
 				validate.data.status === 'partially_paid' ||
 				validate.data.status === 'completed') &&
-			transaction.lenderId !== user?.id
-		)
-			throw new BadRequestException(`Only lender can update the transaction status.`);
+			requiredApproverId !== user?.id
+		) {
+			const requiredRole = isCreatedByBorrower ? 'lender' : 'borrower';
+			throw new BadRequestException(`Only ${requiredRole} can update the transaction status.`);
+		}
 
 		if (validate.data.status === 'requested_repay' && transaction.borrowerId !== user?.id) {
 			const eligibility = this.transactionsService.checkEligibilityForReviewAmount(

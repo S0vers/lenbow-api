@@ -44,6 +44,7 @@ export interface TransactionListReturnType {
 	dueDate: Date | null;
 	createdAt: Date;
 	updatedAt: Date;
+	createdBy: string;
 }
 
 export interface TransactionEligibilityForDeletion {

@@ -77,6 +77,11 @@ export const transactions = pgTable(
 		acceptedAt: timestamp('accepted_at'), // When request was accepted
 		completedAt: timestamp('completed_at'), // When loan was fully paid
 		rejectedAt: timestamp('rejected_at'), // When request was rejected
+
+		// Transaction created by
+		createdBy: integer('created_by')
+			// .notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
 		...timestamps,
 	},
 	table => [

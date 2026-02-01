@@ -58,6 +58,17 @@ export const requestTransactionQuerySchema = baseQuerySchema(TRANSACTION_SORTABL
 		.optional(),
 });
 
+// Schema for incoming transaction creation request
+export const validateIncomingTransactionSchema = z.object({
+	type: validateEnum('Transaction Type', transactionTypeEnum.enumValues),
+	contactId: validateUUID('Contact ID'),
+	amount: validatePositiveNumber('Amount'),
+	currency: validateString('Currency Code'),
+	description: validateString('Description').optional(),
+	dueDate: validateDate('Due Date').optional(),
+});
+
+// Internal schema with full transaction details
 export const validateTransactionSchema = z.object({
 	borrowerId: validatePositiveNumber('Borrower ID'),
 	lenderId: validatePositiveNumber('Lender ID'),
@@ -73,6 +84,7 @@ export const validateTransactionSchema = z.object({
 	acceptedAt: validateDate('Accepted At').optional(),
 	completedAt: validateDate('Completed At').optional(),
 	rejectedAt: validateDate('Rejected At').optional(),
+	createdBy: validatePositiveNumber('Created By'),
 });
 
 const updateRejectedTransactionSchema = z.object({
@@ -112,6 +124,7 @@ export const validateDeleteTransactionSchema = z.object({
 
 export type TransactionQuerySchemaType = z.infer<typeof transactionQuerySchema>;
 export type RequestTransactionQuerySchemaType = z.infer<typeof requestTransactionQuerySchema>;
+export type ValidateIncomingTransactionDto = z.infer<typeof validateIncomingTransactionSchema>;
 export type ValidateTransactionDto = z.infer<typeof validateTransactionSchema>;
 export type ValidateUpdateStatusTransactionDto = z.infer<
 	typeof validateUpdateStatusTransactionSchema
