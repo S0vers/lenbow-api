@@ -519,7 +519,7 @@ export class TransactionsService extends DrizzleService {
 		const transactions = await this.getDb().query.transactions.findMany({
 			where: and(
 				inArray(schema.transactions.publicId, publicIds),
-				eq(schema.transactions.borrowerId, currentUserId),
+				eq(schema.transactions.createdBy, currentUserId),
 			),
 		});
 
