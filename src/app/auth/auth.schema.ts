@@ -25,8 +25,19 @@ export const updateProfileSchema = z.object({
 	image: validateString('Image').optional(),
 	phone: validatePhoneNumber('Phone').optional(),
 	is2faEnabled: validateBoolean('is2faEnabled').optional(),
+	receiveTransactionEmails: validateBoolean('receiveTransactionEmails').optional(),
+});
+
+export const updateEmailPreferencesSchema = z.object({
+	receiveTransactionEmails: validateBoolean('receiveTransactionEmails'),
+});
+
+export const unsubscribeSchema = z.object({
+	token: validateString('Token'),
 });
 
 export type LoginDto = z.infer<typeof loginSchema>;
 export type RegisterDto = z.infer<typeof registerSchema>;
 export type UpdateProfileDto = z.infer<typeof updateProfileSchema>;
+export type UpdateEmailPreferencesDto = z.infer<typeof updateEmailPreferencesSchema>;
+export type UnsubscribeDto = z.infer<typeof unsubscribeSchema>;

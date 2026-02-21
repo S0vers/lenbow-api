@@ -4,6 +4,7 @@ import {
 	Controller,
 	Get,
 	HttpStatus,
+	Param,
 	Post,
 	Put,
 	Req,
@@ -118,6 +119,7 @@ export class AuthController {
 			emailVerified: false,
 			phone: validate.data.phone || null,
 			currencyCode: null,
+			receiveTransactionEmails: true,
 		};
 
 		const existingUser = await this.authService.checkIfUserExists(userData.email);
@@ -328,6 +330,59 @@ export class AuthController {
 			response.redirect(redirectUrl);
 		} else {
 			response.json(createApiResponse(HttpStatus.OK, 'Google login successful', responseUser));
+		}
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Put('email-preferences')
+	async updateEmailPreferences(
+		@Body() body: { receiveTransactionEmails: boolean },
+		@Request() req: ExpressRequest,
+	): Promise<ApiResponse<UserWithoutPasswordResponse>> {
+		const userId = Number(req.user?.id);
+
+		const updatedUser = await this.authService.updateUser(userId, {
+			receiveTransactionEmails: body.receiveTransactionEmails,
+		});
+
+		const responseUser: UserWithoutPasswordResponse = {
+			...updatedUser,
+			id: updatedUser.publicId,
+			imageInformation: null,
+		};
+
+		return createApiResponse(HttpStatus.OK, 'Email preferences updated successfully', responseUser);
+	}
+
+	@Get('unsubscribe/:token')
+	async unsubscribe(@Param('token') token: string): Promise<ApiResponse<{ message: string }>> {
+		try {
+			// Decode token (format: base64 encoded email)
+			const email = Buffer.from(token, 'base64').toString('utf-8');
+
+			if (!email || !email.includes('@')) {
+				throw new BadRequestException('Invalid unsubscribe token');
+			}
+
+			// Find user by email
+			const user = await this.authService.findUserByEmail(email);
+			if (!user) {
+				throw new BadRequestException('User not found');
+			}
+
+			// Update email preferences
+			await this.authService.updateUser(user.id, {
+				receiveTransactionEmails: false,
+			});
+
+			return createApiResponse(HttpStatus.OK, 'Successfully unsubscribed from transaction emails', {
+				message: 'You have been unsubscribed from transaction emails',
+			});
+		} catch (error) {
+			if (error instanceof BadRequestException) {
+				throw error;
+			}
+			throw new BadRequestException('Failed to unsubscribe');
 		}
 	}
 }

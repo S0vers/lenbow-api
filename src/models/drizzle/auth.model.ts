@@ -30,6 +30,7 @@ export const users = pgTable(
 		phone: varchar('phone', { length: 20 }),
 		currencyCode: text('currency_code').references(() => currencies.code, { onDelete: 'set null' }),
 		is2faEnabled: boolean('is_2fa_enabled').default(false).notNull(),
+		receiveTransactionEmails: boolean('receive_transaction_emails').default(true).notNull(),
 		...timestamps,
 	},
 	table => [

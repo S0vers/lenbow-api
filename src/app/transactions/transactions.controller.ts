@@ -59,6 +59,14 @@ export class TransactionsController {
 		private configService: ConfigService<EnvType, true>,
 	) {}
 
+	/**
+	 * Generate unsubscribe token and URL for email
+	 */
+	private generateUnsubscribeUrl(email: string): string {
+		const token = Buffer.from(email).toString('base64');
+		return `${this.configService.get('APP_URL')}/unsubscribe?token=${token}`;
+	}
+
 	@UseGuards(JwtAuthGuard)
 	@Get('')
 	async getTransactionList(
@@ -189,7 +197,7 @@ export class TransactionsController {
 			// Borrower is requesting money from lender - send email to lender
 			const lenderDetails = await this.authService.findUserById(lenderId);
 
-			if (lenderDetails) {
+			if (lenderDetails && lenderDetails.receiveTransactionEmails) {
 				await this.brevoService.sendFromTemplate({
 					templateKey: 'loan_request_from_borrower',
 					to: [{ email: lenderDetails.email, name: lenderDetails.name || 'User' }],
@@ -214,6 +222,7 @@ export class TransactionsController {
 						transactionId: transaction.publicId,
 						actionUrl: `${this.configService.get('APP_URL')}/requests?search=${transaction.publicId}`,
 						supportEmail: this.configService.get('BREVO_SENDER_EMAIL'),
+						unsubscribeUrl: this.generateUnsubscribeUrl(lenderDetails.email),
 						year: new Date().getFullYear(),
 					},
 				});
@@ -222,7 +231,7 @@ export class TransactionsController {
 			// Lender is offering to lend money to borrower - send email to borrower
 			const borrowerDetails = await this.authService.findUserById(borrowerId);
 
-			if (borrowerDetails) {
+			if (borrowerDetails && borrowerDetails.receiveTransactionEmails) {
 				await this.brevoService.sendFromTemplate({
 					templateKey: 'loan_offer_from_lender',
 					to: [{ email: borrowerDetails.email, name: borrowerDetails.name || 'User' }],
@@ -247,6 +256,7 @@ export class TransactionsController {
 						transactionId: transaction.publicId,
 						actionUrl: `${this.configService.get('APP_URL')}/requests?search=${transaction.publicId}`,
 						supportEmail: this.configService.get('BREVO_SENDER_EMAIL'),
+						unsubscribeUrl: this.generateUnsubscribeUrl(borrowerDetails.email),
 						year: new Date().getFullYear(),
 					},
 				});
@@ -401,7 +411,7 @@ export class TransactionsController {
 			const recipientId = isCreatedByBorrower ? transaction.lenderId : transaction.borrowerId;
 			const recipient = await this.authService.findUserById(recipientId);
 
-			if (recipient) {
+			if (recipient && recipient.receiveTransactionEmails) {
 				const updatedByUser = await this.authService.findUserById(updatedTransaction.updatedBy!);
 				const borrowerDetails = await this.authService.findUserById(transaction.borrowerId);
 				const lenderDetails = await this.authService.findUserById(transaction.lenderId);
@@ -426,6 +436,7 @@ export class TransactionsController {
 						transactionId: updatedTransaction.publicId,
 						actionUrl: `${this.configService.get('APP_URL')}/requests?search=${updatedTransaction.publicId}`,
 						supportEmail: this.configService.get('BREVO_SENDER_EMAIL'),
+						unsubscribeUrl: this.generateUnsubscribeUrl(recipient.email),
 						year: new Date().getFullYear().toString(),
 					},
 				});
@@ -564,7 +575,11 @@ export class TransactionsController {
 		const borrowerDetails = await this.authService.findUserById(transaction.borrowerId);
 		const lenderDetails = await this.authService.findUserById(transaction.lenderId);
 
-		if (validate.data.status === 'accepted' && borrowerDetails) {
+		if (
+			validate.data.status === 'accepted' &&
+			borrowerDetails &&
+			borrowerDetails.receiveTransactionEmails
+		) {
 			// Notify borrower that their request was approved
 			await this.brevoService.sendFromTemplate({
 				templateKey: 'request_approved',
@@ -597,10 +612,15 @@ export class TransactionsController {
 					transactionId: updatedTransaction.publicId,
 					actionUrl: `${this.configService.get('APP_URL')}/borrow?search=${updatedTransaction.publicId}`,
 					supportEmail: this.configService.get('BREVO_SENDER_EMAIL'),
+					unsubscribeUrl: this.generateUnsubscribeUrl(borrowerDetails.email),
 					year: new Date().getFullYear(),
 				},
 			});
-		} else if (validate.data.status === 'rejected' && borrowerDetails) {
+		} else if (
+			validate.data.status === 'rejected' &&
+			borrowerDetails &&
+			borrowerDetails.receiveTransactionEmails
+		) {
 			// Notify borrower that their request was rejected
 			await this.brevoService.sendFromTemplate({
 				templateKey: 'request_rejected',
@@ -622,10 +642,15 @@ export class TransactionsController {
 					transactionId: updatedTransaction.publicId,
 					actionUrl: `${this.configService.get('APP_URL')}/history?search=${updatedTransaction.publicId}`,
 					supportEmail: this.configService.get('BREVO_SENDER_EMAIL'),
+					unsubscribeUrl: this.generateUnsubscribeUrl(borrowerDetails.email),
 					year: new Date().getFullYear(),
 				},
 			});
-		} else if (validate.data.status === 'requested_repay' && lenderDetails) {
+		} else if (
+			validate.data.status === 'requested_repay' &&
+			lenderDetails &&
+			lenderDetails.receiveTransactionEmails
+		) {
 			// Notify lender that borrower wants to make a repayment
 			await this.brevoService.sendFromTemplate({
 				templateKey: 'repayment_requested',
@@ -641,6 +666,7 @@ export class TransactionsController {
 					transactionId: updatedTransaction.publicId,
 					actionUrl: `${this.configService.get('APP_URL')}/lend?search=${updatedTransaction.publicId}`,
 					supportEmail: this.configService.get('BREVO_SENDER_EMAIL'),
+					unsubscribeUrl: this.generateUnsubscribeUrl(lenderDetails.email),
 					year: new Date().getFullYear(),
 				},
 			});
@@ -670,26 +696,32 @@ export class TransactionsController {
 			};
 
 			// Send to borrower
-			await this.brevoService.sendFromTemplate({
-				templateKey: 'repayment_completed',
-				to: [{ email: borrowerDetails.email, name: borrowerDetails.name || 'User' }],
-				params: {
-					...completedParams,
-					borrowerName: borrowerDetails.name || 'User',
-					lenderName: lenderDetails.name || 'Lender',
-				},
-			});
+			if (borrowerDetails.receiveTransactionEmails) {
+				await this.brevoService.sendFromTemplate({
+					templateKey: 'repayment_completed',
+					to: [{ email: borrowerDetails.email, name: borrowerDetails.name || 'User' }],
+					params: {
+						...completedParams,
+						borrowerName: borrowerDetails.name || 'User',
+						lenderName: lenderDetails.name || 'Lender',
+						unsubscribeUrl: this.generateUnsubscribeUrl(borrowerDetails.email),
+					},
+				});
+			}
 
 			// Send to lender
-			await this.brevoService.sendFromTemplate({
-				templateKey: 'repayment_completed_lender',
-				to: [{ email: lenderDetails.email, name: lenderDetails.name || 'User' }],
-				params: {
-					...completedParams,
-					borrowerName: borrowerDetails.name || 'Borrower',
-					lenderName: lenderDetails.name || 'User',
-				},
-			});
+			if (lenderDetails.receiveTransactionEmails) {
+				await this.brevoService.sendFromTemplate({
+					templateKey: 'repayment_completed_lender',
+					to: [{ email: lenderDetails.email, name: lenderDetails.name || 'User' }],
+					params: {
+						...completedParams,
+						borrowerName: borrowerDetails.name || 'Borrower',
+						lenderName: lenderDetails.name || 'User',
+						unsubscribeUrl: this.generateUnsubscribeUrl(lenderDetails.email),
+					},
+				});
+			}
 		}
 
 		return createApiResponse(
@@ -756,7 +788,7 @@ export class TransactionsController {
 		const borrowerDetails = await this.authService.findUserById(transaction.borrowerId);
 		const lenderDetails = await this.authService.findUserById(transaction.lenderId);
 
-		if (borrowerDetails) {
+		if (borrowerDetails && borrowerDetails.receiveTransactionEmails) {
 			// Check if loan is completed
 			if (status === 'completed') {
 				// Send completion email
@@ -791,11 +823,12 @@ export class TransactionsController {
 						...completedParams,
 						borrowerName: borrowerDetails.name || 'User',
 						lenderName: lenderDetails?.name || 'Lender',
+						unsubscribeUrl: this.generateUnsubscribeUrl(borrowerDetails.email),
 					},
 				});
 
 				// Send to lender
-				if (lenderDetails) {
+				if (lenderDetails && lenderDetails.receiveTransactionEmails) {
 					await this.brevoService.sendFromTemplate({
 						templateKey: 'repayment_completed_lender',
 						to: [{ email: lenderDetails.email, name: lenderDetails.name || 'User' }],
@@ -803,6 +836,7 @@ export class TransactionsController {
 							...completedParams,
 							borrowerName: borrowerDetails.name || 'Borrower',
 							lenderName: lenderDetails.name || 'User',
+							unsubscribeUrl: this.generateUnsubscribeUrl(lenderDetails.email),
 						},
 					});
 				}
@@ -822,6 +856,7 @@ export class TransactionsController {
 						transactionId: updatedTransaction.publicId,
 						actionUrl: `${this.configService.get('APP_URL')}/borrow/${updatedTransaction.publicId}`,
 						supportEmail: this.configService.get('BREVO_SENDER_EMAIL'),
+						unsubscribeUrl: this.generateUnsubscribeUrl(borrowerDetails.email),
 						year: new Date().getFullYear(),
 					},
 				});
@@ -880,7 +915,7 @@ export class TransactionsController {
 		const borrowerDetails = await this.authService.findUserById(transaction.borrowerId);
 		const lenderDetails = await this.authService.findUserById(transaction.lenderId);
 
-		if (borrowerDetails) {
+		if (borrowerDetails && borrowerDetails.receiveTransactionEmails) {
 			await this.brevoService.sendFromTemplate({
 				templateKey: 'repayment_rejected',
 				to: [{ email: borrowerDetails.email, name: borrowerDetails.name || 'User' }],
@@ -895,6 +930,7 @@ export class TransactionsController {
 					transactionId: updatedTransaction.publicId,
 					actionUrl: `${this.configService.get('APP_URL')}/transactions/${updatedTransaction.publicId}`,
 					supportEmail: this.configService.get('BREVO_SENDER_EMAIL'),
+					unsubscribeUrl: this.generateUnsubscribeUrl(borrowerDetails.email),
 					year: new Date().getFullYear(),
 				},
 			});
