@@ -85,6 +85,8 @@ export class AuthController {
 
 		const cookieConfig = AppHelpers.sameSiteCookieConfig(this.configService);
 
+		console.log('Cookie Config: ', JSON.stringify(cookieConfig, null, 2));
+
 		// Set cookie
 		request.res?.cookie('access-token', accessToken, {
 			httpOnly: true,
