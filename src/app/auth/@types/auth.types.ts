@@ -9,8 +9,8 @@ export type CreateUser = Omit<
 
 export type SessionDataType = Omit<
 	SessionSchemaType,
-	'id' | 'publicId' | 'twoFactorVerified' | 'isRevoked' | 'createdAt' | 'updatedAt'
->;
+	'id' | 'publicId' | 'isRevoked' | 'createdAt' | 'updatedAt'
+> & { twoFactorVerified?: boolean };
 
 // Api Response Types
 export type UserWithoutPasswordResponse = Omit<UserSchemaType, 'id' | 'publicId' | 'password'> & {

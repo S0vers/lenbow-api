@@ -32,6 +32,7 @@ interface UserInformation {
 	deviceName: string;
 	deviceType: string;
 	expirationTime?: number;
+	twoFactorVerified?: boolean;
 }
 
 @Injectable()
@@ -72,6 +73,7 @@ export class AuthService extends DrizzleService {
 			deviceName: userInfo.deviceName,
 			deviceType: userInfo.deviceType,
 			token,
+			twoFactorVerified: userInfo.twoFactorVerified ?? false,
 		});
 
 		return sessionToken;

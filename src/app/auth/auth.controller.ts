@@ -42,6 +42,7 @@ import {
 import { AuthService } from './auth.service';
 import { AuthSession } from './auth.session';
 import { GoogleProfile } from './strategies/google.strategy';
+import { MfaService } from '../mfa/mfa.service';
 
 @Controller('auth')
 export class AuthController {
@@ -51,6 +52,7 @@ export class AuthController {
 		private authService: AuthService,
 		private authSession: AuthSession,
 		private configService: ConfigService<EnvType, true>,
+		private mfaService: MfaService,
 	) {
 		this.cloudinaryImageService = new CloudinaryImageService({
 			cloudName: this.configService.get('CLOUDINARY_CLOUD_NAME'),
@@ -64,13 +66,40 @@ export class AuthController {
 	async login(
 		@Body() loginDto: LoginDto,
 		@Request() request: ExpressRequest,
-	): Promise<ApiResponse<UserWithoutPasswordResponse>> {
+	): Promise<
+		| ApiResponse<UserWithoutPasswordResponse>
+		| ApiResponse<{ requiresMfa: true; userId: number }>
+	> {
 		const validate = loginSchema.safeParse(loginDto);
 		if (!validate.success) {
 			throw new BadRequestException(validate.error.issues.map(issue => issue.message).join(', '));
 		}
 
 		const user = await this.authService.validateUser(validate.data);
+		const mfaEnabled = await this.mfaService.isEnabled(user.id);
+
+		if (mfaEnabled && !validate.data.mfaToken) {
+			return createApiResponse(HttpStatus.OK, 'MFA required', {
+				requiresMfa: true as const,
+				userId: user.id,
+			});
+		}
+
+		if (mfaEnabled && validate.data.mfaToken) {
+			try {
+				await this.mfaService.verifyToken(user.id, validate.data.mfaToken);
+			} catch {
+				if (validate.data.mfaToken.includes('-')) {
+					try {
+						await this.mfaService.verifyBackupCode(user.id, validate.data.mfaToken);
+					} catch {
+						throw new BadRequestException('Invalid MFA token or backup code');
+					}
+				} else {
+					throw new BadRequestException('Invalid MFA token');
+				}
+			}
+		}
 
 		const userDeviceInfo = this.authSession.getSessionInfo(request);
 
@@ -81,11 +110,11 @@ export class AuthController {
 			ipAddress: userDeviceInfo.ipAddress,
 			deviceName: userDeviceInfo.deviceName,
 			deviceType: userDeviceInfo.deviceType,
+			twoFactorVerified: mfaEnabled,
 		});
 
 		const cookieConfig = AppHelpers.sameSiteCookieConfig(this.configService);
 
-		// Set cookie
 		request.res?.cookie('access-token', accessToken, {
 			httpOnly: true,
 			secure: cookieConfig.secure,

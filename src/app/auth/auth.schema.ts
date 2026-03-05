@@ -10,6 +10,7 @@ import {
 export const loginSchema = z.object({
 	email: validateEmail,
 	password: validateString('Password'),
+	mfaToken: z.string().optional(),
 });
 
 export const registerSchema = z.object({

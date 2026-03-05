@@ -8,6 +8,7 @@ import {
 } from '../models/drizzle/enum.model';
 import { transactionHistories } from '../models/drizzle/history.model';
 import { media } from '../models/drizzle/media.model';
+import { userMfaSettings } from '../models/drizzle/mfa.model';
 import { transactions, type contacts } from '../models/drizzle/transactions.model';
 
 export type UserSchemaType = InferSelectModel<typeof users>;
@@ -18,6 +19,7 @@ export type TransactionSchemaType = InferSelectModel<typeof transactions>;
 export type ContactSchemaType = InferSelectModel<typeof contacts>;
 export type TransactionHistoriesSchemaType = InferSelectModel<typeof transactionHistories>;
 export type CurrencySchemaType = InferSelectModel<typeof currencies>;
+export type UserMfaSettingsSchemaType = InferSelectModel<typeof userMfaSettings>;
 
 /**
  * Enum Schema Types
