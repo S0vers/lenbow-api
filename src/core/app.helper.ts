@@ -7,6 +7,27 @@ interface SameSiteCookieConfig {
 	domain?: string;
 }
 
+/** Normalize URL to origin (scheme + host + port) for comparison. Handles URLs without protocol. */
+function getOrigin(url: string, isProduction: boolean): string {
+	const withProtocol = url.includes('://') ? url : (isProduction ? 'https://' : 'http://') + url;
+	try {
+		return new URL(withProtocol).origin;
+	} catch {
+		return withProtocol;
+	}
+}
+
+/** True if API and frontend(s) are on different origins (cross-origin cookie required). */
+function isCrossOriginSetup(configService: ConfigService<any, boolean>): boolean {
+	const isProduction = configService.get<string>('NODE_ENV') === 'production';
+	const apiUrl = configService.get<string>('API_URL', '');
+	const originUrl = configService.get<string>('ORIGIN_URL', '');
+	if (!apiUrl || !originUrl) return false;
+	const apiOrigin = getOrigin(apiUrl.trim(), isProduction);
+	const origins = originUrl.split(',').map(s => getOrigin(s.trim(), isProduction));
+	return origins.every(origin => origin !== apiOrigin);
+}
+
 export default class AppHelpers {
 	/**
 	 * Determines if the input is an email or a username.
@@ -51,8 +72,14 @@ export default class AppHelpers {
 	 * @returns The SameSite and secure settings for cookies.
 	 */
 	static sameSiteCookieConfig(configService: ConfigService<any, boolean>): SameSiteCookieConfig {
-		const sameSite = configService.get<CookieOptions['sameSite']>('COOKIE_SAME_SITE', 'lax');
-		const secure = configService.get<string>('COOKIE_SECURE') === 'true';
+		const crossOrigin = isCrossOriginSetup(configService);
+		// Cross-origin (e.g. dashboard on different domain/port than API) requires SameSite=none + Secure=true
+		const sameSite = crossOrigin
+			? ('none' as CookieOptions['sameSite'])
+			: (configService.get<CookieOptions['sameSite']>('COOKIE_SAME_SITE', 'lax'));
+		const secure = crossOrigin
+			? true // Required when SameSite=none
+			: configService.get<string>('COOKIE_SECURE') === 'true';
 		const domain = configService.get<string>('COOKIE_DOMAIN');
 
 		const config: SameSiteCookieConfig = {
