@@ -44,6 +44,8 @@ export const envSchema = z.object({
 	ORIGIN_URL: validateString('ORIGIN_URL'),
 	API_URL: validateString('API_URL'),
 	APP_URL: validateString('APP_URL'),
+	/** Secret for POST /budget-subscriptions/process-due (external cron). If set, endpoint requires X-Cron-Secret header. */
+	BUDGET_CRON_SECRET: z.string().min(1).optional(),
 	...cookieEnvSchema.shape,
 	...allSecretsEnvSchema.shape,
 	...googleEnvSchema.shape,

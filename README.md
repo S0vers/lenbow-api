@@ -19,6 +19,7 @@ production-ready applications.
 - 🌐 **API Response Standardization** - Consistent response format across all endpoints
 - 📝 **Request Logging** - Comprehensive request/response logging
 - 🎯 **Device Tracking** - User agent and device information tracking
+- 💰 **Budget Tracking** - Personal income/expense tracking with categories, receipts, and recurring subscriptions (processed via external cron endpoint)
 
 ## Tech Stack
 
@@ -68,6 +69,9 @@ GOOGLE_CALLBACK_URL=http://localhost:8080/auth/google/callback
 POSTGRES_USER=auth_project
 POSTGRES_PASSWORD=auth_project
 POSTGRES_DB=auth_project
+
+# Budget cron (optional) - secret for POST /budget-subscriptions/process-due (external scheduler)
+# BUDGET_CRON_SECRET=your_secret_here
 ```
 
 3. **Start PostgreSQL with Docker:**
@@ -118,6 +122,9 @@ pnpm db:push
 
 # Clear database
 pnpm db:clear
+
+# Seed budget categories (system categories)
+pnpm db:seed:budget-categories
 ```
 
 ## Code Quality
@@ -138,21 +145,17 @@ pnpm build
 ```
 src/
 ├── app/
-│   └── auth/                 # Authentication module
-│       ├── strategies/       # Passport strategies (JWT, Google)
-│       ├── auth.service.ts   # Authentication logic
-│       ├── auth.controller.ts
-│       └── auth.guard.ts
+│   ├── auth/                 # Authentication module
+│   ├── budget-categories/    # Budget categories CRUD
+│   ├── budget-transactions/  # Budget transactions + receipts
+│   ├── budget-subscriptions/ # Recurring subscriptions (process-due for external cron)
+│   ├── overview/             # Dashboard overview (metrics, recent data, budget summary)
+│   └── ...                   # contacts, currency, history, media, transactions, etc.
 ├── core/                     # Core utilities
-│   ├── crypto/              # Encryption services
-│   ├── validators/          # Schema validators
-│   └── constants.ts
-├── csrf/                    # CSRF protection module
-├── database/                # Database configuration
-│   ├── schema.ts           # Database schema
-│   └── connection.ts
+├── csrf/                     # CSRF protection module
+├── database/                 # Database configuration
 └── models/
-    └── drizzle/            # Drizzle ORM models
+    └── drizzle/              # Drizzle ORM models (auth, budget, transactions, etc.)
 ```
 
 ## API Endpoints
@@ -170,6 +173,30 @@ src/
 
 - `GET /csrf` - Get CSRF token
 
+### Budget (JWT required unless noted)
+
+- `GET /budget-categories` - List categories (system + user)
+- `POST /budget-categories` - Create custom category
+- `PATCH /budget-categories/:id` - Update category
+- `DELETE /budget-categories/:id` - Delete category
+- `GET /budget-transactions` - List transactions (pagination, filters)
+- `GET /budget-transactions/:id` - Get transaction
+- `POST /budget-transactions` - Create transaction
+- `PATCH /budget-transactions/:id` - Update transaction
+- `DELETE /budget-transactions/:id` - Delete transaction
+- `POST /budget-transactions/:id/receipts/:mediaPublicId` - Attach receipt
+- `DELETE /budget-transactions/:id/receipts/:mediaPublicId` - Detach receipt
+- `GET /budget-subscriptions` - List subscriptions
+- `GET /budget-subscriptions/:id` - Get subscription
+- `POST /budget-subscriptions` - Create subscription
+- `PATCH /budget-subscriptions/:id` - Update subscription
+- `DELETE /budget-subscriptions/:id` - Delete subscription
+- `POST /budget-subscriptions/process-due` - Process due subscriptions (no JWT; requires `X-Cron-Secret` header; for external cron)
+
+### Overview
+
+- `GET /overview` - Dashboard overview (includes loan metrics and optional budget summary + recent budget transactions)
+
 ## Security Features
 
 - JWT token-based authentication
@@ -184,6 +211,8 @@ src/
 For additional documentation, see:
 
 - [CSRF Implementation](docs/CSRF_IMPLEMENTATION.md)
+- [Budget (Self-Accounting) Feature](docs/BUDGET_FEATURE.md)
+- [Overview Feature](docs/OVERVIEW_FEATURE.md)
 - [Testing Removal Guide](docs/REMOVE_TESTING.md)
 
 ## License

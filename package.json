@@ -30,7 +30,8 @@
 		"db:clear": "ts-node src/database/clean.ts",
 		"db:seed:template": "ts-node src/seeds/templateSeeder.ts",
 		"db:seed:currency": "ts-node src/seeds/currencySeeder.ts",
-		"db:seed:demo": "ts-node src/seeds/demoDataSeeder.ts"
+		"db:seed:demo": "ts-node src/seeds/demoDataSeeder.ts",
+		"db:seed:budget-categories": "ts-node src/seeds/budgetCategorySeeder.ts"
 	},
 	"dependencies": {
 		"@getbrevo/brevo": "^3.0.1",

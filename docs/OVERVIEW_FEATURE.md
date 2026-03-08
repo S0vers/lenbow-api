@@ -51,10 +51,21 @@ Authorization: Bearer <jwt_token>
     "actionRequired": ActionRequiredItem[],
     "chartData": ChartData,
     "recentTransactions": RecentTransaction[],
-    "upcomingDueDates": UpcomingDueDate[]
+    "upcomingDueDates": UpcomingDueDate[],
+    "budgetSummary": BudgetSummary | null,
+    "recentBudgetTransactions": RecentBudgetTransaction[]
   }
 }
 ```
+
+### Budget data (overview)
+
+When the user has budget activity, the overview includes:
+
+- **budgetSummary** – Current calendar month: `totalIncomeThisMonth`, `totalExpenseThisMonth`, `balanceThisMonth`. Computed from `budget_transactions` (type `in` / `out`). Always present (may be zeros).
+- **recentBudgetTransactions** – Latest budget transactions (same limit as `recentLimit`). Each item: `id`, `name`, `amount`, `type` (in | out), `categoryName`, `date`, `currency`.
+
+See [BUDGET_FEATURE.md](BUDGET_FEATURE.md) for the full budget API.
 
 ## Data Structures
 

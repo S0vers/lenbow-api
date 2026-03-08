@@ -198,6 +198,11 @@ loan-app-api/
 │   │       ├── @types/                      # Type definitions
 │   │       └── constants.ts                 # Domain constants
 │   │
+│   ├── budget-categories/                   # Budget categories (system + user)
+│   ├── budget-transactions/                 # Budget transactions + receipts
+│   ├── budget-subscriptions/              # Recurring subscriptions (process-due for external cron)
+│   ├── overview/                           # Dashboard overview (metrics, budget summary)
+│   │
 │   ├── core/                            # Core/shared utilities
 │   │   ├── api-response.interceptor.ts  # Response standardization
 │   │   ├── http-exception.filter.ts     # Global exception handling
@@ -239,9 +244,10 @@ loan-app-api/
 │   └── models/
 │       └── drizzle/
 │           ├── auth.model.ts            # Users, Sessions, Accounts schemas
-│           ├── transactions.model.ts    # Transactions, Contacts, Payments schemas
+│           ├── budget.model.ts          # Budget categories, transactions, receipts, subscriptions
+│           ├── transactions.model.ts   # Lend/borrow transactions, Contacts, Payments
 │           ├── relation.model.ts        # Table relationships
-│           └── enum.models.ts           # Database enums
+│           └── enum.model.ts            # Database enums
 │
 ├── .drizzle/                            # Auto-generated migrations
 │   └── migrations/                      # SQL migration files
@@ -250,7 +256,9 @@ loan-app-api/
 │   └── 18/docker/                       # PostgreSQL configuration
 │
 ├── docs/                                # Documentation
+│   ├── BUDGET_FEATURE.md                # Budget (self-accounting) API and process-due
 │   ├── CSRF_IMPLEMENTATION.md           # CSRF protection details
+│   ├── OVERVIEW_FEATURE.md              # Overview endpoint and dashboard data
 │   └── REMOVE_TESTING.md                # Testing guidelines
 │
 ├── Configuration Files
@@ -640,7 +648,7 @@ Indexes:
 
 ## API Endpoints
 
-### Total Routes: 19
+### Total Routes: 38+ (including budget and overview)
 
 #### Authentication Endpoints
 
@@ -676,6 +684,29 @@ Indexes:
 | `/transactions/:publicId`                  | GET    | getTransaction     | Get transaction details           |
 | `/transactions/:publicId/repayment/accept` | PUT    | acceptTransaction  | Accept repayment request          |
 | `/transactions/:publicId/repayment/reject` | PUT    | rejectTransaction  | Reject repayment request          |
+
+#### Budget Endpoints
+
+| Endpoint                                                    | Method | Description                                      |
+| ----------------------------------------------------------- | ------ | ------------------------------------------------ |
+| `/budget-categories`                                        | GET    | List budget categories (system + user)           |
+| `/budget-categories`                                        | POST   | Create custom category                           |
+| `/budget-categories/:publicId`                              | GET    | Get one category                                 |
+| `/budget-categories/:publicId`                              | PATCH  | Update custom category                           |
+| `/budget-categories/:publicId`                              | DELETE | Delete custom category                           |
+| `/budget-transactions`                                      | GET    | List budget transactions (pagination, filters)  |
+| `/budget-transactions`                                      | POST   | Create budget transaction                        |
+| `/budget-transactions/:publicId`                           | GET    | Get one transaction                              |
+| `/budget-transactions/:publicId`                           | PATCH  | Update transaction                               |
+| `/budget-transactions/:publicId`                           | DELETE | Delete transaction                               |
+| `/budget-transactions/:publicId/receipts/:mediaPublicId`   | POST   | Attach receipt                                   |
+| `/budget-transactions/:publicId/receipts/:mediaPublicId`   | DELETE | Detach receipt                                   |
+| `/budget-subscriptions`                                     | GET    | List subscriptions                               |
+| `/budget-subscriptions`                                     | POST   | Create subscription                              |
+| `/budget-subscriptions/process-due`                         | POST   | Process due subscriptions (X-Cron-Secret; no JWT)|
+| `/budget-subscriptions/:publicId`                          | GET    | Get one subscription                             |
+| `/budget-subscriptions/:publicId`                          | PATCH  | Update subscription                              |
+| `/budget-subscriptions/:publicId`                          | DELETE | Delete subscription                              |
 
 #### Root Endpoint
 
@@ -753,7 +784,58 @@ All endpoints return standardized responses:
 
 **Database Dependencies:** contacts, users tables
 
-### 3. Transactions Module
+### 3. Budget Categories Module
+
+**Responsibility:** System and user-defined budget categories for income/expense classification
+
+**Components:**
+
+- **BudgetCategoriesController** – CRUD endpoints for categories
+- **BudgetCategoriesService** – List (system + user), create, update, delete (user-scoped; system categories read-only)
+
+**Key Features:**
+
+- List returns system categories (`user_id` NULL) and the current user's custom categories
+- Create/update/delete only for custom categories (user-owned)
+- Slug optional on create (auto-derived from name); unique per user
+
+**Database Dependencies:** budget_categories, users tables
+
+### 4. Budget Transactions Module
+
+**Responsibility:** Personal income/expense transactions with optional receipt attachments
+
+**Components:**
+
+- **BudgetTransactionsController** – List, get one, create, update, delete, attach/detach receipts
+- **BudgetTransactionsService** – CRUD, pagination, filters (date range, type, category), receipt linking via media publicId
+
+**Key Features:**
+
+- Transactions have name, amount, type (in | out), currency, category, date, note, details
+- Receipts linked via junction table to existing `media` table (attach/detach by media publicId)
+- List supports pagination and filtering
+
+**Database Dependencies:** budget_transactions, budget_categories, budget_transaction_receipts, media, users tables
+
+### 5. Budget Subscriptions Module
+
+**Responsibility:** Recurring expense templates; processing is triggered by an external cron via a dedicated endpoint
+
+**Components:**
+
+- **BudgetSubscriptionsController** – CRUD for subscriptions; **POST /process-due** (no JWT; protected by `X-Cron-Secret` header)
+- **BudgetSubscriptionsService** – CRUD, `next_run_at` computation, `processDueSubscriptions()` (creates budget_transactions and advances `next_run_at`)
+
+**Key Features:**
+
+- Subscriptions: name, amount, category, recurrence (weekly | monthly | yearly), next_run_at, is_active
+- **Process-due endpoint:** Call `POST /budget-subscriptions/process-due` with header `X-Cron-Secret: <BUDGET_CRON_SECRET>`. Processes all due subscriptions (creates one budget transaction per subscription and advances next_run_at). No internal cron; intended for external scheduler (e.g. system cron, GitHub Actions).
+- Environment: optional `BUDGET_CRON_SECRET`; if set, process-due requires matching header
+
+**Database Dependencies:** budget_subscriptions, budget_categories, budget_transactions, users tables
+
+### 6. Transactions Module
 
 **Responsibility:** Managing loan requests and repayments
 

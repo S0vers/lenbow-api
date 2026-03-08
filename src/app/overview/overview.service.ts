@@ -6,10 +6,12 @@ import schema from '../../database/schema';
 import DrizzleService from '../../database/service';
 import type {
 	ActionRequiredItem,
+	BudgetSummary,
 	ChartData,
 	MetricsData,
 	MonthlyActivityData,
 	OverviewResponse,
+	RecentBudgetTransaction,
 	RecentTransaction,
 	StatusDistribution,
 	UpcomingDueDate,
@@ -26,13 +28,15 @@ export class OverviewService extends DrizzleService {
 	}
 
 	async getOverview(userId: number, options: OverviewQuerySchemaType): Promise<OverviewResponse> {
-		const [metrics, actionRequired, chartData, recentTransactions, upcomingDueDates] =
+		const [metrics, actionRequired, chartData, recentTransactions, upcomingDueDates, budgetSummary, recentBudgetTransactions] =
 			await Promise.all([
 				this.getMetrics(userId),
 				this.getActionRequired(userId, options.actionRequiredLimit || 10),
 				this.getChartData(userId, options.monthsBack || 6),
 				this.getRecentTransactions(userId, options.recentLimit || 10),
 				this.getUpcomingDueDates(userId, options.upcomingLimit || 5),
+				this.getBudgetSummary(userId),
+				this.getRecentBudgetTransactions(userId, options.recentLimit || 10),
 			]);
 
 		return {
@@ -41,6 +45,8 @@ export class OverviewService extends DrizzleService {
 			chartData,
 			recentTransactions,
 			upcomingDueDates,
+			budgetSummary,
+			recentBudgetTransactions,
 		};
 	}
 
@@ -457,5 +463,86 @@ export class OverviewService extends DrizzleService {
 				status: row.status,
 			};
 		});
+	}
+
+	private async getBudgetSummary(userId: number): Promise<BudgetSummary | null> {
+		const startOfMonth = new Date();
+		startOfMonth.setDate(1);
+		startOfMonth.setHours(0, 0, 0, 0);
+		const endOfToday = new Date();
+		endOfToday.setHours(23, 59, 59, 999);
+
+		const [incomeResult, expenseResult] = await Promise.all([
+			this.getDb()
+				.select({
+					total: sql<number>`COALESCE(SUM(${schema.budgetTransactions.amount}), 0)`,
+				})
+				.from(schema.budgetTransactions)
+				.where(
+					and(
+						eq(schema.budgetTransactions.userId, userId),
+						eq(schema.budgetTransactions.type, 'in'),
+						gte(schema.budgetTransactions.date, startOfMonth),
+						lte(schema.budgetTransactions.date, endOfToday),
+					),
+				)
+				.then(r => r[0]),
+			this.getDb()
+				.select({
+					total: sql<number>`COALESCE(SUM(${schema.budgetTransactions.amount}), 0)`,
+				})
+				.from(schema.budgetTransactions)
+				.where(
+					and(
+						eq(schema.budgetTransactions.userId, userId),
+						eq(schema.budgetTransactions.type, 'out'),
+						gte(schema.budgetTransactions.date, startOfMonth),
+						lte(schema.budgetTransactions.date, endOfToday),
+					),
+				)
+				.then(r => r[0]),
+		]);
+
+		const totalIncome = Number(incomeResult?.total ?? 0);
+		const totalExpense = Number(expenseResult?.total ?? 0);
+		return {
+			totalIncomeThisMonth: totalIncome,
+			totalExpenseThisMonth: totalExpense,
+			balanceThisMonth: totalIncome - totalExpense,
+		};
+	}
+
+	private async getRecentBudgetTransactions(
+		userId: number,
+		limit: number,
+	): Promise<RecentBudgetTransaction[]> {
+		const rows = await this.getDb()
+			.select({
+				id: schema.budgetTransactions.publicId,
+				name: schema.budgetTransactions.name,
+				amount: schema.budgetTransactions.amount,
+				type: schema.budgetTransactions.type,
+				currency: schema.budgetTransactions.currency,
+				date: schema.budgetTransactions.date,
+				categoryName: schema.budgetCategories.name,
+			})
+			.from(schema.budgetTransactions)
+			.leftJoin(
+				schema.budgetCategories,
+				eq(schema.budgetTransactions.categoryId, schema.budgetCategories.id),
+			)
+			.where(eq(schema.budgetTransactions.userId, userId))
+			.orderBy(desc(schema.budgetTransactions.date))
+			.limit(limit);
+
+		return rows.map(r => ({
+			id: r.id,
+			name: r.name,
+			amount: Number(r.amount),
+			type: r.type,
+			categoryName: r.categoryName,
+			date: r.date,
+			currency: r.currency,
+		}));
 	}
 }

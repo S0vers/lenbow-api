@@ -4,6 +4,9 @@ import { DiscoveryModule } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AuthModule } from './app/auth/auth.module';
 import { BrevoModule } from './app/brevo/brevo.module';
+import { BudgetCategoriesModule } from './app/budget-categories/budget-categories.module';
+import { BudgetSubscriptionsModule } from './app/budget-subscriptions/budget-subscriptions.module';
+import { BudgetTransactionsModule } from './app/budget-transactions/budget-transactions.module';
 import { ContactsModule } from './app/contacts/contacts.module';
 import { CurrencyModule } from './app/currency/currency.module';
 import { HistoryModule } from './app/history/history.module';
@@ -37,6 +40,9 @@ import { DatabaseModule } from './database/database.module';
 		OverviewModule,
 		MediaModule,
 		MfaModule,
+		BudgetCategoriesModule,
+		BudgetTransactionsModule,
+		BudgetSubscriptionsModule,
 	],
 	controllers: [AppController],
 })

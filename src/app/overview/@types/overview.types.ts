@@ -83,10 +83,28 @@ export interface UpcomingDueDate {
 	status: TransactionStatusEnum;
 }
 
+export interface BudgetSummary {
+	totalIncomeThisMonth: number;
+	totalExpenseThisMonth: number;
+	balanceThisMonth: number;
+}
+
+export interface RecentBudgetTransaction {
+	id: string;
+	name: string;
+	amount: number;
+	type: 'in' | 'out';
+	categoryName: string | null;
+	date: Date;
+	currency: CurrencyData;
+}
+
 export interface OverviewResponse {
 	metrics: MetricsData;
 	actionRequired: ActionRequiredItem[];
 	chartData: ChartData;
 	recentTransactions: RecentTransaction[];
 	upcomingDueDates: UpcomingDueDate[];
+	budgetSummary: BudgetSummary | null;
+	recentBudgetTransactions: RecentBudgetTransaction[];
 }
