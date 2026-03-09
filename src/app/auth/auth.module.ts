@@ -26,6 +26,6 @@ import { MfaModule } from '../mfa/mfa.module';
 	],
 	providers: [AuthService, JwtStrategy, GoogleStrategy, AuthSession],
 	controllers: [AuthController],
-	exports: [AuthService],
+	exports: [AuthService, AuthSession],
 })
 export class AuthModule {}

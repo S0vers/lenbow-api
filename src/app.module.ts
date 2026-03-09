@@ -13,6 +13,7 @@ import { HistoryModule } from './app/history/history.module';
 import { MediaModule } from './app/media/media.module';
 import { MfaModule } from './app/mfa/mfa.module';
 import { OverviewModule } from './app/overview/overview.module';
+import { EmailTemplatesModule } from './app/email-templates/email-templates.module';
 import { TemplateModule } from './app/template/template.module';
 import { TransactionsModule } from './app/transactions/transactions.module';
 import { CryptoModule } from './core/crypto/crypto.module';
@@ -36,6 +37,7 @@ import { DatabaseModule } from './database/database.module';
 		HistoryModule,
 		BrevoModule,
 		TemplateModule,
+		EmailTemplatesModule,
 		CurrencyModule,
 		OverviewModule,
 		MediaModule,

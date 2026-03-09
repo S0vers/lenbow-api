@@ -42,7 +42,6 @@ describe('MfaTotpService', () => {
 		it('should reject wrong token', () => {
 			const secret = service.generateSecret();
 			const timestamp = Date.now();
-			const token = service.generateToken(secret, timestamp);
 			expect(service.verifyToken(secret, '000000', timestamp)).toBe(false);
 		});
 	});

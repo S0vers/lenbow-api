@@ -26,12 +26,12 @@ export class MfaTotpService {
 		hmac.update(timeBuffer);
 		const hash = hmac.digest();
 
-		const offset = hash[hash.length - 1]! & 0x0f;
+		const offset = hash[hash.length - 1] & 0x0f;
 		const code =
-			((hash[offset]! & 0x7f) << 24) |
-			((hash[offset + 1]! & 0xff) << 16) |
-			((hash[offset + 2]! & 0xff) << 8) |
-			(hash[offset + 3]! & 0xff);
+			((hash[offset] & 0x7f) << 24) |
+			((hash[offset + 1] & 0xff) << 16) |
+			((hash[offset + 2] & 0xff) << 8) |
+			(hash[offset + 3] & 0xff);
 
 		return (code % Math.pow(10, DIGITS)).toString().padStart(DIGITS, '0');
 	}

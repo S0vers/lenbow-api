@@ -86,7 +86,6 @@ export class AuthSession extends DrizzleService {
 			typeof sessionKeyOrId === 'number'
 				? eq(schema.sessions.id, sessionKeyOrId)
 				: eq(schema.sessions.token, sessionKeyOrId);
-
 		await this.validateSession(userId, sessionKeyOrId);
 
 		await this.getDb()
@@ -95,6 +94,23 @@ export class AuthSession extends DrizzleService {
 			.where(and(condition, eq(schema.sessions.userId, userId)));
 
 		return true;
+	}
+
+	async markSessionTwoFactorVerified(
+		userId: number,
+		sessionKeyOrId: string | number,
+	): Promise<void> {
+		const condition =
+			typeof sessionKeyOrId === 'number'
+				? eq(schema.sessions.id, sessionKeyOrId)
+				: eq(schema.sessions.token, sessionKeyOrId);
+
+		await this.validateSession(userId, sessionKeyOrId);
+
+		await this.getDb()
+			.update(schema.sessions)
+			.set({ twoFactorVerified: true })
+			.where(and(condition, eq(schema.sessions.userId, userId)));
 	}
 
 	async revokeAllUserSessions(userId: number): Promise<number> {

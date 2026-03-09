@@ -308,6 +308,8 @@ export class AuthController {
 		const user = await this.authService.findOrCreateGoogleUser(googleProfile);
 		const userDeviceInfo = this.authSession.getSessionInfo(request);
 
+		const mfaEnabled = await this.mfaService.isEnabled(user.id);
+
 		const accessToken = await this.authService.generateAccessToken({
 			userId: user.id,
 			email: user.email,
@@ -330,6 +332,9 @@ export class AuthController {
 		const state = request.query.state as string | undefined;
 		let redirectUrl: string | null = null;
 
+		const allowedOrigins = this.configService.get('ORIGIN_URL', { infer: true });
+		const allowedOriginsArray = allowedOrigins.split(',').map(origin => origin.trim());
+
 		if (state) {
 			try {
 				const decoded = JSON.parse(Buffer.from(state, 'base64').toString('utf-8')) as {
@@ -337,9 +342,6 @@ export class AuthController {
 				};
 
 				if (decoded.redirect) {
-					const allowedOrigins = this.configService.get('ORIGIN_URL', { infer: true });
-					const allowedOriginsArray = allowedOrigins.split(',').map(origin => origin.trim());
-
 					try {
 						const redirectUrlObj = new URL(decoded.redirect);
 						const redirectOrigin = redirectUrlObj.origin;
@@ -361,6 +363,22 @@ export class AuthController {
 			id: user.publicId,
 			imageInformation: null,
 		};
+		if (mfaEnabled) {
+			const baseOrigin =
+				(redirectUrl ? new URL(redirectUrl).origin : allowedOriginsArray[0]) || null;
+
+			if (baseOrigin) {
+				const mfaUrl = new URL('/mfa', baseOrigin);
+				mfaUrl.searchParams.set('userId', String(user.id));
+
+				if (redirectUrl) {
+					mfaUrl.searchParams.set('redirect', redirectUrl);
+				}
+
+				response.redirect(mfaUrl.toString());
+				return;
+			}
+		}
 
 		// Redirect to custom URL or return JSON response
 		if (redirectUrl) {

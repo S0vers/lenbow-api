@@ -10,7 +10,7 @@ export const mfaVerifyLoginSchema = z.object({
 		.string()
 		.min(6, 'MFA token must be at least 6 characters')
 		.max(9, 'MFA token must be at most 9 characters')
-		.regex(/^[0-9A-Z\-]+$/i, 'MFA token must contain only numbers, letters, and dashes'),
+		.regex(/^[0-9A-Z-]+$/i, 'MFA token must contain only numbers, letters, and dashes'),
 });
 
 export const mfaDisableSchema = z.object({

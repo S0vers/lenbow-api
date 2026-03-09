@@ -153,7 +153,6 @@ export class OverviewService extends DrizzleService {
 
 		// Create aliases for borrower and lender
 		const borrower = schema.users;
-		const lender = sql`lender_user`;
 
 		const results = await this.getDb()
 			.select({

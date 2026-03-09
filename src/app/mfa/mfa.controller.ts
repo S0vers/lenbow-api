@@ -13,6 +13,7 @@ import { createApiResponse, type ApiResponse } from '../../core/api-response.int
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { AuthService } from '../auth/auth.service';
 import type { UserWithoutPassword } from '../auth/@types/auth.types';
+import { AuthSession } from '../auth/auth.session';
 import { MfaService } from './mfa.service';
 import {
 	mfaDisableSchema,
@@ -25,6 +26,7 @@ export class MfaController {
 	constructor(
 		private readonly mfaService: MfaService,
 		private readonly authService: AuthService,
+		private readonly authSession: AuthSession,
 	) {}
 
 	@UseGuards(JwtAuthGuard)
@@ -73,6 +75,7 @@ export class MfaController {
 
 	@Post('verify')
 	async verify(
+		@Request() req: ExpressRequest,
 		@Body() body: unknown,
 	): Promise<ApiResponse<{ verified: boolean }>> {
 		const parsed = mfaVerifyLoginSchema.safeParse(body);
@@ -81,13 +84,21 @@ export class MfaController {
 				parsed.error.issues.map(i => i.message).join(', '),
 			);
 		const { userId, token } = parsed.data;
+		const sessionToken = req.cookies?.['access-token'] as string | undefined;
+
+		if (!sessionToken) {
+			throw new BadRequestException('No active session found for MFA verification');
+		}
+
 		try {
 			await this.mfaService.verifyToken(userId, token);
+			await this.authSession.markSessionTwoFactorVerified(userId, sessionToken);
 			return createApiResponse(HttpStatus.OK, 'Token verified', { verified: true });
 		} catch {
 			if (token.includes('-')) {
 				try {
 					await this.mfaService.verifyBackupCode(userId, token);
+					await this.authSession.markSessionTwoFactorVerified(userId, sessionToken);
 					return createApiResponse(HttpStatus.OK, 'Backup code verified', {
 						verified: true,
 					});
